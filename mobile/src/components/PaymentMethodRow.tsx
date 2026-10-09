@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, controlHeight, radii, spacing, type } from '../theme';
 
 export type ExpressMethodId = 'apple_pay' | 'google_pay' | 'affirm';
@@ -12,23 +12,28 @@ const EXPRESS: Record<ExpressMethodId, { label: string; caption?: string; fill: 
   affirm: { label: 'Pay over time with affirm', caption: 'From $23/mo · Subject to eligibility', fill: colors.affirm },
 };
 
-type ExpressProps = { method: ExpressMethodId; disabledHint?: string };
+type ExpressProps = { method: ExpressMethodId; disabledHint?: string; onPress?: (method: ExpressMethodId) => void };
 
-export function ExpressPayButton({ method, disabledHint }: ExpressProps) {
+export function ExpressPayButton({ method, disabledHint, onPress }: ExpressProps) {
   const { label, caption, fill } = EXPRESS[method];
   const disabled = !!disabledHint;
   return (
     <View testID={`express-${method}`}>
-      <View
-        style={[
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={() => onPress?.(method)}
+        style={({ pressed }) => [
           styles.express,
           { backgroundColor: fill },
           method === 'affirm' && { borderColor: fill },
           disabled && styles.dimmed,
+          pressed && styles.pressed,
         ]}
       >
         <Text style={method === 'affirm' ? styles.affirmLabel : styles.walletLabel}>{label}</Text>
-      </View>
+      </Pressable>
       {(disabledHint ?? caption) ? (
         <Text style={[styles.caption, disabled && styles.captionDisabled]}>{disabledHint ?? caption}</Text>
       ) : null}
@@ -36,13 +41,19 @@ export function ExpressPayButton({ method, disabledHint }: ExpressProps) {
   );
 }
 
-type CardRowProps = { expanded?: boolean; children?: ReactNode };
+type CardRowProps = { expanded?: boolean; children?: ReactNode; onPress?: () => void };
 
 // The card path is the only selectable row; selecting it expands the form + Pay button.
-export function CardMethodRow({ expanded = false, children }: CardRowProps) {
+export function CardMethodRow({ expanded = false, children, onPress }: CardRowProps) {
   return (
     <View testID="payment-method-card" style={[styles.cardRow, expanded && styles.cardRowExpanded]}>
-      <View style={styles.cardHeader}>
+      <Pressable
+        testID="payment-method-card-header"
+        accessibilityRole="radio"
+        accessibilityState={{ selected: expanded, expanded }}
+        onPress={onPress}
+        style={styles.cardHeader}
+      >
         <View style={[styles.radio, expanded && styles.radioSelected]}>
           {expanded && <View style={styles.radioDot} />}
         </View>
@@ -51,7 +62,7 @@ export function CardMethodRow({ expanded = false, children }: CardRowProps) {
           <Text style={styles.subtitle}>Visa, Mastercard, Amex, Discover</Text>
         </View>
         <Text style={styles.chevron}>{expanded ? '⌃' : '⌄'}</Text>
-      </View>
+      </Pressable>
       {expanded && children ? <View style={styles.cardBody}>{children}</View> : null}
     </View>
   );
@@ -64,13 +75,22 @@ type ListProps = {
   disabled?: Partial<Record<ExpressMethodId, string>>;
   cardExpanded?: boolean;
   cardForm?: ReactNode;
+  onExpressPress?: (method: ExpressMethodId) => void;
+  onCardPress?: () => void;
 };
 
-export function PaymentMethodList({ express = [], disabled = {}, cardExpanded = false, cardForm }: ListProps) {
+export function PaymentMethodList({
+  express = [],
+  disabled = {},
+  cardExpanded = false,
+  cardForm,
+  onExpressPress,
+  onCardPress,
+}: ListProps) {
   return (
     <View testID="payment-method-list" style={styles.list}>
       {express.map((m) => (
-        <ExpressPayButton key={m} method={m} disabledHint={disabled[m]} />
+        <ExpressPayButton key={m} method={m} disabledHint={disabled[m]} onPress={onExpressPress} />
       ))}
       {express.length > 0 && (
         <View style={styles.orRow}>
@@ -79,7 +99,9 @@ export function PaymentMethodList({ express = [], disabled = {}, cardExpanded = 
           <View style={styles.orLine} />
         </View>
       )}
-      <CardMethodRow expanded={cardExpanded}>{cardForm}</CardMethodRow>
+      <CardMethodRow expanded={cardExpanded} onPress={onCardPress}>
+        {cardForm}
+      </CardMethodRow>
     </View>
   );
 }
@@ -95,6 +117,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dimmed: { opacity: 0.4 },
+  pressed: { opacity: 0.8 },
   walletLabel: { fontSize: 20, fontWeight: '600', color: colors.textPrimary },
   affirmLabel: { fontSize: 17, fontWeight: '600', color: colors.textPrimary },
   caption: { ...type.meta, color: colors.textTertiary, marginTop: spacing.xs, textAlign: 'center' },

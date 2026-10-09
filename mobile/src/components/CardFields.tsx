@@ -1,40 +1,64 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ref } from 'react';
+import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { colors, controlHeight, radii, spacing, type } from '../theme';
 
 export type FieldState = 'empty' | 'invalid' | 'valid';
 
-type FieldProps = {
+type FieldProps = Pick<
+  TextInputProps,
+  | 'placeholder'
+  | 'keyboardType'
+  | 'textContentType'
+  | 'autoComplete'
+  | 'onChangeText'
+  | 'onBlur'
+  | 'onFocus'
+  | 'returnKeyType'
+  | 'editable'
+> & {
   testID: string;
   label: string;
-  placeholder: string;
   value?: string;
   state?: FieldState;
   error?: string;
   trailing?: string;
-  keyboardType?: 'number-pad';
-  textContentType?: 'creditCardNumber';
-  autoComplete?: 'cc-number' | 'cc-exp' | 'cc-csc';
+  inputRef?: Ref<TextInput>;
 };
 
 // Filled dark input with a micro label inside the field (STYLE_GUIDE 4.8).
-function CardField({ testID, label, placeholder, value = '', state = 'empty', error, trailing, ...input }: FieldProps) {
+export function CardField({
+  testID,
+  label,
+  value = '',
+  state = 'empty',
+  error,
+  trailing,
+  inputRef,
+  ...input
+}: FieldProps) {
   return (
     <View testID={testID} style={styles.wrap}>
       <View style={[styles.field, state === 'invalid' && styles.fieldInvalid]}>
         <View style={styles.inputCol}>
           <Text style={styles.floatLabel}>{label}</Text>
           <TextInput
+            ref={inputRef}
             testID={`${testID}-input`}
+            accessibilityLabel={label}
             style={styles.input}
             value={value}
-            placeholder={placeholder}
             placeholderTextColor={colors.textTertiary}
+            autoCorrect={false}
             {...input}
           />
         </View>
         {trailing ? <Text style={[styles.trailing, state === 'valid' && styles.trailingValid]}>{trailing}</Text> : null}
       </View>
-      {state === 'invalid' && error ? <Text style={styles.error}>{error}</Text> : null}
+      {state === 'invalid' && error ? (
+        <Text testID={`${testID}-error`} style={styles.error}>
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }

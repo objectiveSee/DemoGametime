@@ -2,7 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing, type } from '../theme';
 import { PayButton } from './PayButton';
 
-type Props = { variant: 'success'; confirmationCode?: string } | { variant: 'declined'; reason?: string };
+type Props =
+  { variant: 'success'; confirmationCode?: string } | { variant: 'declined'; reason?: string; onRetry?: () => void };
 
 export function ResultView(props: Props) {
   const success = props.variant === 'success';
@@ -17,15 +18,17 @@ export function ResultView(props: Props) {
           <Text style={styles.body}>Your tickets are confirmed and on their way to your email.</Text>
           <View style={styles.codeBox}>
             <Text style={styles.codeLabel}>Confirmation</Text>
-            <Text style={styles.code}>{props.confirmationCode ?? 'GT-7K4QX2'}</Text>
+            <Text testID="confirmation-code" style={styles.code}>
+              {props.confirmationCode ?? 'GT-7K4QX2'}
+            </Text>
           </View>
         </>
       ) : (
         <>
           <Text style={styles.title}>Payment declined.</Text>
-          <Text style={styles.body}>{props.reason ?? 'Your bank declined this card. You have not been charged.'}</Text>
+          <Text style={styles.body}>{props.reason ?? 'Your bank declined this card.'} You have not been charged.</Text>
           <View style={styles.retry}>
-            <PayButton label="Try Again" />
+            <PayButton testID="retry-button" label="Try Again" onPress={props.onRetry} />
           </View>
         </>
       )}

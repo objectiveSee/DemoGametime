@@ -1,26 +1,57 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing, touchTarget, type } from '../theme';
 
-type Props = { quantity?: number; min?: number; max?: number; label?: string };
+type Props = {
+  quantity?: number;
+  min?: number;
+  max?: number;
+  label?: string;
+  disabled?: boolean;
+  onChange?: (quantity: number) => void;
+};
 
-export function QuantityStepper({ quantity = 2, min = 1, max = 8, label = 'Tickets' }: Props) {
+export function QuantityStepper({ quantity = 2, min = 1, max = 8, label = 'Tickets', disabled, onChange }: Props) {
   return (
     <View testID="quantity-stepper" style={styles.row}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.stepper}>
-        <StepButton glyph="−" disabled={quantity <= min} testID="quantity-decrement" />
-        <Text style={styles.value}>{quantity}</Text>
-        <StepButton glyph="+" disabled={quantity >= max} testID="quantity-increment" />
+        <StepButton
+          glyph="−"
+          label="Fewer tickets"
+          disabled={disabled || quantity <= min}
+          onPress={() => onChange?.(quantity - 1)}
+          testID="quantity-decrement"
+        />
+        <Text testID="quantity-value" style={styles.value}>
+          {quantity}
+        </Text>
+        <StepButton
+          glyph="+"
+          label="More tickets"
+          disabled={disabled || quantity >= max}
+          onPress={() => onChange?.(quantity + 1)}
+          testID="quantity-increment"
+        />
       </View>
     </View>
   );
 }
 
-function StepButton({ glyph, disabled, testID }: { glyph: string; disabled: boolean; testID: string }) {
+type StepProps = { glyph: string; label: string; disabled: boolean; onPress: () => void; testID: string };
+
+function StepButton({ glyph, label, disabled, onPress, testID }: StepProps) {
   return (
-    <View testID={testID} style={[styles.button, disabled && styles.disabled]}>
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [styles.button, disabled && styles.disabled, pressed && styles.pressed]}
+    >
       <Text style={styles.glyph}>{glyph}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -37,6 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   disabled: { opacity: 0.4 },
+  pressed: { backgroundColor: colors.surface3 },
   glyph: { fontSize: 22, fontWeight: '500', color: colors.textPrimary },
   value: { ...type.h3, color: colors.textPrimary, minWidth: 24, textAlign: 'center' },
 });
