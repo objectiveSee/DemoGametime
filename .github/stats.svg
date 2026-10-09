@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="t">
+  <title id="t">By the numbers: 383 Jest specs passing, 10 Maestro flows on 2 platforms, 34 subagents, ~490M tokens processed, 0 lines of human-written code, 3,344 model calls, 6 frontier + 28 workhorse agents, 3 adversarial review rounds, 2 custom agent skills, ~6.5 hours first commit to final gate</title>
+  <rect x="1" y="1" width="1278" height="418" rx="24" fill="#0E0F11" stroke="#2C2D31" stroke-width="2"/>
+  <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <polygon points="64,52 64,72 78,62" fill="#2BD17E"/>
+    <text x="92" y="68" font-size="15" font-weight="600" letter-spacing="3.5" fill="#8E8F94">BY THE NUMBERS</text>
+
+    <g font-size="60" font-weight="700" fill="#2BD17E" letter-spacing="-1.5">
+      <text x="64" y="178">383</text>
+      <text x="294" y="178">10×2</text>
+      <text x="524" y="178">34</text>
+      <text x="754" y="178"><tspan font-size="40" dy="-4">~</tspan><tspan dy="4">490M</tspan></text>
+      <text x="984" y="178">0</text>
+    </g>
+    <g font-size="17" fill="#C9CACD">
+      <text x="64" y="212">Jest specs passing</text>
+      <text x="294" y="212">Maestro flows × platforms</text>
+      <text x="524" y="212">subagents</text>
+      <text x="754" y="212">tokens processed</text>
+      <text x="984" y="212">lines of human-written code</text>
+    </g>
+
+    <rect x="64" y="262" width="48" height="3" rx="1.5" fill="#2BD17E"/>
+    <rect x="120" y="263" width="1096" height="1" fill="#2C2D31"/>
+
+    <g font-size="32" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">
+      <text x="64" y="330">3,344</text>
+      <text x="294" y="330">6+28</text>
+      <text x="524" y="330">3</text>
+      <text x="754" y="330">2</text>
+      <text x="984" y="330">~6.5h</text>
+    </g>
+    <g font-size="16" fill="#8E8F94">
+      <text x="64" y="358">model calls</text>
+      <text x="294" y="358">frontier + workhorse agents</text>
+      <text x="524" y="358">adversarial review rounds</text>
+      <text x="754" y="358">custom agent skills</text>
+      <text x="984" y="358">first commit → final gate</text>
+    </g>
+  </g>
+</svg>

@@ -21,15 +21,9 @@ Second, the steering: a top-level orchestrator dispatched a focused subagent per
 
 ### By the numbers
 
-<div align="center">
+<div align="center"><img src=".github/stats.svg" alt="Project statistics: 383 Jest specs, 10 Maestro flows on 2 platforms, 34 subagents, ~490M tokens processed, 0 lines of human-written code, 3344 model calls, 3 adversarial review rounds, 2 custom skills, ~6.5 hours" width="920"></div>
 
-<img alt="Jest specs: 383 passing" src="https://img.shields.io/badge/Jest%20specs-383%20passing-2BD17E?style=flat">
-<img alt="Maestro: 10 flows on iOS and Android" src="https://img.shields.io/badge/Maestro-10%20flows%20%C3%97%202%20platforms-2BD17E?style=flat">
-<img alt="Subagents: 34" src="https://img.shields.io/badge/subagents-34-2BD17E?style=flat">
-<img alt="Tokens processed: about 490M" src="https://img.shields.io/badge/tokens%20processed-~490M-2BD17E?style=flat">
-<img alt="Human-written code: 0 lines" src="https://img.shields.io/badge/human--written%20code-0%20lines-2BD17E?style=flat">
-
-</div>
+<details><summary>Stats as text</summary>
 
 | | |
 | --- | --- |
@@ -40,6 +34,8 @@ Second, the steering: a top-level orchestrator dispatched a focused subagent per
 | **Adversarial review rounds** | 3 |
 | **Custom agent skills** | 2 — `maestro`, `mock-server` |
 | **Wall-clock** | ~6½ hours, first commit to final gate, in one session |
+
+</details>
 
 ## Running it
 
