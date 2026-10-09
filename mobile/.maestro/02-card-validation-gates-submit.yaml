@@ -33,7 +33,8 @@ name: Card validation gates submit
     id: pay-button
     enabled: false
 
-# An incomplete CVC blocks Pay; the last digit unlocks it.
+# An incomplete CVC blocks Pay. The field was never blurred, so its error only shows once Pay is
+# tapped; the last digit then unlocks Pay.
 - runFlow: _launch.yaml
 - runFlow:
     file: _enter-card.yaml
@@ -41,9 +42,13 @@ name: Card validation gates submit
       NUMBER: "4242424242424242"
       EXPIRY: "1230"
       CVC: "12"
+- assertNotVisible: "Security code is incomplete."
 - assertVisible:
     id: pay-button
     enabled: false
+- tapOn:
+    id: pay-button
+- assertVisible: "Security code is incomplete."
 - inputText: "3"
 - assertVisible:
     id: pay-button

@@ -321,6 +321,7 @@ export function CheckoutScreen() {
                 label={shownTotal ? `Pay ${formatCents(shownTotal.pricing.totalCents)}` : 'Updating total…'}
                 disabled={!canPay}
                 onPress={pay}
+                onDisabledPress={card.touchAll}
               />
             </>
           }

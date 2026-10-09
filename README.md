@@ -111,7 +111,7 @@ One reducer (`mobile/src/lib/checkoutState.ts`) owns the truth; events that are 
 `idle → authorizing → processing → succeeded | declined` (express)
 plus `checking` — "we don't know yet" — entered from a relaunch with a pending attempt or a request that lost its response.
 
-**Card:** Pay is disabled until the form validates (fields format on every change — typing, paste, and keychain autofill all arrive as whole-field values and format identically; errors appear on blur or submit, then clear live). Submit re-validates, writes a snapshot `{idempotencyKey, orderId, quantity, amountCents, method}` to AsyncStorage, *then* POSTs. A definitive answer clears the snapshot and settles the state.
+**Card:** Pay is disabled until the form validates (fields format on every change — typing, paste, and keychain autofill all arrive as whole-field values and format identically; errors appear on blur, or on every field when a not-yet-valid Pay is tapped, then clear live). Submit re-validates, writes a snapshot `{idempotencyKey, orderId, quantity, amountCents, method}` to AsyncStorage, *then* POSTs. A definitive answer clears the snapshot and settles the state.
 
 **Express:** one tap opens the authorization — a stub wallet sheet that mimics the real shape (slides up, shows the total, fake biometric, auto-authorizes; cancellable via ✕ or scrim until authorization fires), or for Affirm a real browser redirect (`openAuthSessionAsync` against the server's hosted page) that deep-links back. Authorization yields a token; the snapshot is persisted **with the token**, then the same POST path runs. No second submit anywhere.
 

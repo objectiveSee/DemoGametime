@@ -1,6 +1,6 @@
 // Card form state. Formatting runs on every change (typing, paste and autofill all arrive as a
-// whole-field value); error messages appear once a field is blurred or a submit was attempted,
-// and from then on track every keystroke so a fixed field clears immediately.
+// whole-field value). A field's error shows once it's blurred, or for every field once Pay is
+// tapped, and from then on tracks every keystroke so a fixed field clears immediately.
 import { useMemo, useState } from 'react';
 
 import {

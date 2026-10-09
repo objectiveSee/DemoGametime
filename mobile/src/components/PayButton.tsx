@@ -12,18 +12,21 @@ type Props = {
   disabled?: boolean;
   label?: string;
   onPress?: () => void;
+  /** A tap while disabled, e.g. to show the fan what's still missing. */
+  onDisabledPress?: () => void;
   testID?: string;
 };
 
 // Disabled is semantic, not just visual: VoiceOver announces "dimmed" and onPress never fires.
 // The press itself still lands, though, so a tap on a not-ready Pay button answers with a small
 // head-shake and a rigid nudge (the iOS "not yet") instead of dead glass.
-export function PayButton({ disabled = false, label = 'Pay $135.90', onPress, testID }: Props) {
+export function PayButton({ disabled = false, label = 'Pay $135.90', onPress, onDisabledPress, testID }: Props) {
   const reduced = useReducedMotion();
   const press = usePressScale(!disabled);
   const [shake] = useState(() => new Animated.Value(0));
 
   const refuse = () => {
+    onDisabledPress?.();
     haptics.nudge();
     if (reduced) return;
     shake.setValue(0);
