@@ -1,0 +1,9 @@
+# Shared subflow: cold-start Expo Go straight into the project (needs Metro on :8081 and the
+# mock server on :4000) and wait for the order to load.
+appId: host.exp.Exponent
+---
+- stopApp
+- openLink: exp://127.0.0.1:8081
+- extendedWaitUntil:
+    visible: "Total"
+    timeout: 60000

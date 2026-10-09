@@ -1,0 +1,20 @@
+# Valid card -> success with a server-issued GT- confirmation code.
+appId: host.exp.Exponent
+name: Card happy path
+---
+- runFlow: _launch.yaml
+- runFlow:
+    file: _enter-card.yaml
+    env:
+      NUMBER: "4242424242424242"
+      EXPIRY: "1230"
+      CVC: "123"
+# The ~1.5 s processing overlay is shorter than Maestro's per-command round-trip on this
+# screen, so it isn't asserted here; the checkout reducer specs cover that transition.
+- tapOn:
+    id: pay-button
+    enabled: true
+- extendedWaitUntil:
+    visible: "You're going."
+    timeout: 15000
+- assertVisible: "GT-[A-Z0-9]{6}"

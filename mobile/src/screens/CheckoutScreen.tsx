@@ -81,18 +81,24 @@ export function CheckoutScreen() {
   const fieldState = (field: 'number' | 'expiry' | 'cvc') =>
     card.errorFor(field) ? 'invalid' : card.values[field] && card.isFieldValid(field) ? 'valid' : 'empty';
 
+  // The result is a layer over the form rather than a replacement, so Try Again lands the fan
+  // back exactly where they were: same scroll position, same card details.
+  const showingResult = state.status === 'succeeded' || state.status === 'declined';
+  const result = showingResult ? (
+    <ScrollView
+      style={styles.resultLayer}
+      contentContainerStyle={[styles.resultContent, { paddingBottom: insets.bottom + spacing.xl }]}
+    >
+      {state.status === 'succeeded' ? (
+        <ResultView variant="success" confirmationCode={state.receipt.confirmationCode} />
+      ) : (
+        <ResultView variant="declined" reason={state.failure.message} onRetry={checkout.retry} />
+      )}
+    </ScrollView>
+  ) : null;
+
   let body;
-  if (state.status === 'succeeded' || state.status === 'declined') {
-    body = (
-      <ScrollView contentContainerStyle={[styles.resultContent, { paddingBottom: insets.bottom + spacing.xl }]}>
-        {state.status === 'succeeded' ? (
-          <ResultView variant="success" confirmationCode={state.receipt.confirmationCode} />
-        ) : (
-          <ResultView variant="declined" reason={state.failure.message} onRetry={checkout.retry} />
-        )}
-      </ScrollView>
-    );
-  } else if (!order) {
+  if (!order) {
     body = (
       <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
         {error ? (
@@ -108,6 +114,8 @@ export function CheckoutScreen() {
       <ScrollView
         ref={scrollRef}
         testID="checkout-scroll"
+        accessibilityElementsHidden={showingResult}
+        importantForAccessibility={showingResult ? 'no-hide-descendants' : 'auto'}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
@@ -201,7 +209,10 @@ export function CheckoutScreen() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Text style={styles.title}>Checkout</Text>
       </View>
-      {body}
+      <View style={styles.body}>
+        {body}
+        {result}
+      </View>
       {state.status === 'processing' || state.status === 'validating' ? <ProcessingOverlay /> : null}
       {state.status === 'checking' ? <ProcessingOverlay variant="checking" /> : null}
     </View>
@@ -228,6 +239,8 @@ const styles = StyleSheet.create({
   },
   title: { ...type.h1, color: colors.textPrimary },
   content: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.lg },
+  body: { flex: 1 },
+  resultLayer: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: colors.bgBase },
   resultContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: spacing.lg },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg },
   stepper: { paddingHorizontal: spacing.xs },

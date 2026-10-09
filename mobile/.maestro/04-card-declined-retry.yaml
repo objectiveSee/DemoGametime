@@ -1,0 +1,26 @@
+# Decline is a handled outcome: declined screen, then Try Again returns to the form with the
+# card still filled in, ready to edit.
+appId: host.exp.Exponent
+name: Card declined, then retry with the form intact
+---
+- runFlow: _launch.yaml
+- runFlow:
+    file: _enter-card.yaml
+    env:
+      NUMBER: "4000000000000002" # mock server's always-decline card
+      EXPIRY: "1230"
+      CVC: "123"
+- tapOn:
+    id: pay-button
+    enabled: true
+- extendedWaitUntil:
+    visible: "Payment declined."
+    timeout: 15000
+- assertVisible: "Your card was declined. You have not been charged."
+- tapOn:
+    id: retry-button
+- assertVisible: "4000 0000 0000 0002"
+- assertVisible: "12/30"
+- assertVisible:
+    id: pay-button
+    enabled: true

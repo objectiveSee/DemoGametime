@@ -1,0 +1,50 @@
+# The Pay button stays disabled (and ignores taps) until the whole card form is valid.
+# Each case starts fresh: editing mid-field is cursor-position dependent in Maestro, so only append.
+appId: host.exp.Exponent
+name: Card validation gates submit
+---
+# Luhn failure blocks Pay, and tapping it does nothing.
+- runFlow: _launch.yaml
+- runFlow:
+    file: _enter-card.yaml
+    env:
+      NUMBER: "4242424242424241"
+      EXPIRY: "1230"
+      CVC: "123"
+- assertVisible: "Card number is invalid."
+- assertVisible:
+    id: pay-button
+    enabled: false
+- tapOn:
+    id: pay-button
+- assertNotVisible: "Processing payment…"
+- assertVisible: "Card number is invalid."
+
+# An expired date blocks Pay.
+- runFlow: _launch.yaml
+- runFlow:
+    file: _enter-card.yaml
+    env:
+      NUMBER: "4242424242424242"
+      EXPIRY: "0124"
+      CVC: "123"
+- assertVisible: "This card has expired."
+- assertVisible:
+    id: pay-button
+    enabled: false
+
+# An incomplete CVC blocks Pay; the last digit unlocks it.
+- runFlow: _launch.yaml
+- runFlow:
+    file: _enter-card.yaml
+    env:
+      NUMBER: "4242424242424242"
+      EXPIRY: "1230"
+      CVC: "12"
+- assertVisible:
+    id: pay-button
+    enabled: false
+- inputText: "3"
+- assertVisible:
+    id: pay-button
+    enabled: true

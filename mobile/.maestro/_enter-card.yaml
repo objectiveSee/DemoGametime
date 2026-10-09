@@ -1,0 +1,15 @@
+# Shared subflow: open the card form and type ${NUMBER}, ${EXPIRY} (MMYY), ${CVC}.
+# Focus auto-advances number -> expiry -> CVC once each field is complete.
+appId: host.exp.Exponent
+---
+- tapOn:
+    id: payment-method-card-header
+- tapOn:
+    id: card-number-input
+- inputText: ${NUMBER}
+- tapOn:
+    id: card-expiry-input
+- inputText: ${EXPIRY}
+- tapOn:
+    id: card-cvc-input
+- inputText: ${CVC}

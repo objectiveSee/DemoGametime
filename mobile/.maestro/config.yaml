@@ -1,0 +1,4 @@
+# `maestro test .maestro` runs the numbered requirement flows; _*.yaml are shared subflows.
+# Needs Metro (:8081), the mock server (:4000) and Expo Go on a booted iOS simulator.
+flows:
+  - "0*.yaml"
