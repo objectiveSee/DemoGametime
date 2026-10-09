@@ -102,3 +102,19 @@ appId: host.exp.Exponent
 - **Timing Maestro steps:** MCP results carry no timestamps. Drop a `runScript` that does `http.get('http://localhost:4000/health?mark=…')` between steps and read the gaps off the mock server's log.
 - **A sheet's controls aren't there the instant the tap that opens it returns.** Tapping a modal's ✕ (by `point:` or even by `id:`) straight after the opening tap can land before the modal mounts, so it silently does nothing and an auto-advancing sheet proceeds. `extendedWaitUntil` on the control's id first, then a `point:` tap, lands reliably inside a ~3 s window.
 - **Clearing a filled field:** tapping it puts the cursor mid-text and pops the edit callout; `tapOn: "Select All"` then `eraseText` empties it in one go.
+
+## Android
+
+The iOS-only rule above is the default. Use the emulator only when a task explicitly asks for Android.
+
+- **Device:** AVD `Pixel_9_API_35` (Android 15, 1080x2424). `list_devices` shows it twice: use the **`emulator-5554`** entry (`connected: true`) as `device_id`. The bare AVD-name entry is the not-running image. With the iOS sim also booted, always pass the device explicitly.
+- **App id is all-lowercase `host.exp.exponent`** (iOS is `host.exp.Exponent`). It's case-sensitive, so the committed iOS flows fail on Android as written.
+- **Loading the project:** `adb reverse tcp:8081 tcp:8081` (redo after an emulator restart), then `adb shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent`. Never `expo start --android`; Metro is already running. First open shows Expo Go's dev sheet: tap Continue, then ✕. The emulator reaches the mock server at `10.0.2.2:4000` with no tunnel.
+- **The first `am start` after `am force-stop` can land on the launcher.** Screenshot, and re-send the same intent if needed.
+- **MCP calls fail with `UNAVAILABLE: io exception`** when the Android driver isn't running (nothing listening, no `adb forward`). Start it by hand and the next MCP call works: `adb forward tcp:7001 tcp:7001`, then in the background `adb shell am instrument -w -m -e debug false -e class 'dev.mobile.maestro.MaestroDriverService#grpcServer' dev.mobile.maestro.test/androidx.test.runner.AndroidJUnitRunner`.
+- **Expo Go's floating "Tools" gear is visible on Android** and can sit right on top of an app's header button. Hide it: tap it (`text: "Tools"`), scroll to the **Tools button** switch, turn it off, then close the sheet.
+- **Fast screenshots and raw input:** `adb exec-out screencap -p > out.png` saves a PNG in ~0.3 s. `adb shell input tap X Y` (pixels; Maestro's displayed screenshot is scaled ×1.21) and `adb shell input keyevent KEYCODE_BACK` are faster than MCP calls for racing auto-advancing UI.
+- **Recording:** `adb shell screenrecord --time-limit N /sdcard/x.mp4` then `adb pull`. Like the iOS recorder, it writes frames only on change.
+- **Animation scales 0 = Reduce Motion.** With `settings put global animator_duration_scale 0` (common for test stability), RN's `isReduceMotionEnabled()` returns true and reduced-motion code paths run. To see real motion, set `window_animation_scale`, `transition_animation_scale` and `animator_duration_scale` to 1, cold-start the app, and restore them afterward.
+- **Hardware BACK:** `back` / `KEYCODE_BACK` first dismisses the keyboard, then fires a visible `Modal`'s `onRequestClose`. With neither on screen, it backgrounds Expo Go to the launcher; JS state survives, and re-sending the `am start` intent resumes it.
+- **`hideKeyboard` works on Android.** When a focused field sits under the keyboard, chain `tapOn` id → `inputText` → `hideKeyboard` for each field, so the next field is uncovered before you tap it.
