@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing, type } from '../theme';
 
-// Rendered inline in the gallery; real usage would be absolutely positioned over checkout.
+// Fills its nearest positioned parent; dims whatever is underneath.
 export function ProcessingOverlay({ message = 'Processing payment…' }: { message?: string }) {
   return (
     <View testID="processing-overlay" style={styles.backdrop}>
@@ -16,14 +16,20 @@ export function ProcessingOverlay({ message = 'Processing payment…' }: { messa
 
 const styles = StyleSheet.create({
   backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: colors.scrim,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.xxl,
   },
   panel: {
     backgroundColor: colors.surface1,
     borderRadius: radii.card,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.xxl,
     alignItems: 'center',

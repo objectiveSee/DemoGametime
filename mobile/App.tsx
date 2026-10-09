@@ -10,7 +10,7 @@ import { PaymentMethodList } from './src/components/PaymentMethodRow';
 import { ProcessingOverlay } from './src/components/ProcessingOverlay';
 import { QuantityStepper } from './src/components/QuantityStepper';
 import { ResultView } from './src/components/ResultView';
-import { colors, spacing, type } from './src/theme';
+import { colors, radii, spacing, type } from './src/theme';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -67,7 +67,10 @@ export default function App() {
         </Section>
 
         <Section title="Processing overlay">
-          <ProcessingOverlay />
+          <View style={styles.overlayDemo}>
+            <OrderSummaryCard />
+            <ProcessingOverlay />
+          </View>
         </Section>
 
         <Section title="Result · success">
@@ -82,6 +85,7 @@ export default function App() {
           <DevMenuSheet />
         </Section>
       </ScrollView>
+      <View style={styles.statusBarScrim} />
       <StatusBar style="light" />
     </View>
   );
@@ -102,4 +106,7 @@ const styles = StyleSheet.create({
   },
   sectionBody: { gap: spacing.md },
   inline: { flexDirection: 'row', gap: spacing.md },
+  overlayDemo: { borderRadius: radii.card, overflow: 'hidden' },
+  // Opaque strip so scrolled content doesn't collide with the status bar.
+  statusBarScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 56, backgroundColor: colors.bgBase },
 });

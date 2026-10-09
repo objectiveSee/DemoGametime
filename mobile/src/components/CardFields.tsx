@@ -16,19 +16,18 @@ type FieldProps = {
   autoComplete?: 'cc-number' | 'cc-exp' | 'cc-csc';
 };
 
-// Filled dark input with a floating micro label once there's a value (STYLE_GUIDE 4.8).
+// Filled dark input with a micro label inside the field (STYLE_GUIDE 4.8).
 function CardField({ testID, label, placeholder, value = '', state = 'empty', error, trailing, ...input }: FieldProps) {
-  const hasValue = value.length > 0;
   return (
     <View testID={testID} style={styles.wrap}>
       <View style={[styles.field, state === 'invalid' && styles.fieldInvalid]}>
         <View style={styles.inputCol}>
-          {hasValue && <Text style={styles.floatLabel}>{label}</Text>}
+          <Text style={styles.floatLabel}>{label}</Text>
           <TextInput
             testID={`${testID}-input`}
             style={styles.input}
             value={value}
-            placeholder={label}
+            placeholder={placeholder}
             placeholderTextColor={colors.textTertiary}
             {...input}
           />
@@ -36,7 +35,6 @@ function CardField({ testID, label, placeholder, value = '', state = 'empty', er
         {trailing ? <Text style={[styles.trailing, state === 'valid' && styles.trailingValid]}>{trailing}</Text> : null}
       </View>
       {state === 'invalid' && error ? <Text style={styles.error}>{error}</Text> : null}
-      {state === 'empty' ? <Text style={styles.hint}>{placeholder}</Text> : null}
     </View>
   );
 }
@@ -82,7 +80,7 @@ export function CvvInput({ state = 'empty' }: { state?: FieldState }) {
     <CardField
       testID={`card-cvv-${state}`}
       label="CVC"
-      placeholder="3 digits"
+      placeholder="123"
       value={value}
       state={state}
       error="Too short."
@@ -112,5 +110,4 @@ const styles = StyleSheet.create({
   trailing: { ...type.label, color: colors.textSecondary, marginLeft: spacing.sm },
   trailingValid: { color: colors.green400 },
   error: { ...type.meta, color: colors.error, marginTop: spacing.xs },
-  hint: { ...type.meta, color: colors.textTertiary, marginTop: spacing.xs },
 });

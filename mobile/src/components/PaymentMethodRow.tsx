@@ -74,10 +74,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.surface1,
     borderRadius: radii.control,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.borderSubtle,
   },
-  rowSelected: { borderColor: colors.green500, borderWidth: 2 },
+  rowSelected: { borderColor: colors.green500 },
   rowDisabled: { opacity: 0.45 },
   radio: {
     width: 22,

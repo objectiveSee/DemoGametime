@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radii.sheet,
     padding: spacing.lg,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.xxl,
   },
   grabber: {
     alignSelf: 'center',
@@ -92,7 +93,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     height: touchTarget,
     borderRadius: radii.control,
-    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
