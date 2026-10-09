@@ -19,10 +19,15 @@ type Props =
   | { variant: 'declined'; reason?: string; onRetry?: () => void };
 
 export function ResultView(props: Props) {
-  if (props.variant === 'success') return <Success confirmationCode={props.confirmationCode} onNewOrder={props.onNewOrder} />;
+  if (props.variant === 'success')
+    return <Success confirmationCode={props.confirmationCode} onNewOrder={props.onNewOrder} />;
   return (
     <View testID="result-declined" style={styles.card}>
-      <View style={[styles.iconWrap, styles.icon, styles.iconDeclined]}>
+      <View
+        style={[styles.iconWrap, styles.icon, styles.iconDeclined]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <Text style={styles.iconGlyph}>!</Text>
       </View>
       <Text style={styles.title}>Payment declined.</Text>
@@ -83,7 +88,8 @@ function Success({ confirmationCode, onNewOrder }: { confirmationCode?: string; 
 
   return (
     <View testID="result-success" style={styles.card}>
-      <View style={styles.iconWrap}>
+      {/* Decorative: the title says it. */}
+      <View style={styles.iconWrap} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {reduced ? null : <ChevronBurst delayMs={POP_AT} />}
         <Animated.View style={[styles.icon, styles.iconSuccess, { transform: [{ scale: pop }] }]}>
           <Animated.Text style={[styles.iconGlyph, styles.iconGlyphSuccess, glyph]}>✓</Animated.Text>

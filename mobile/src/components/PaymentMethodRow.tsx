@@ -11,9 +11,10 @@ export type ExpressMethodId = 'apple_pay' | 'google_pay' | 'affirm';
 // No radio, no separate Pay tap.
 const EXPRESS_ORDER: ExpressMethodId[] = ['apple_pay', 'google_pay', 'affirm'];
 
-const EXPRESS: Record<ExpressMethodId, { label: string; caption?: string; fill: string }> = {
-  apple_pay: { label: ' Pay', fill: colors.black },
-  google_pay: { label: 'G Pay', fill: colors.black },
+// `a11y` names the wallet for VoiceOver where the visual label is a logo glyph.
+const EXPRESS: Record<ExpressMethodId, { label: string; a11y?: string; caption?: string; fill: string }> = {
+  apple_pay: { label: ' Pay', a11y: 'Apple Pay', fill: colors.black },
+  google_pay: { label: 'G Pay', a11y: 'Google Pay', fill: colors.black },
   affirm: { label: 'Pay over time with affirm', caption: 'From $23/mo · Subject to eligibility', fill: colors.affirm },
 };
 
@@ -26,7 +27,7 @@ type ExpressProps = {
 };
 
 export function ExpressPayButton({ method, disabledHint, onPress, onLongPress }: ExpressProps) {
-  const { label, caption, fill } = EXPRESS[method];
+  const { label, a11y, caption, fill } = EXPRESS[method];
   const disabled = !!disabledHint;
   const press = usePressScale(!disabled);
   return (
@@ -34,6 +35,7 @@ export function ExpressPayButton({ method, disabledHint, onPress, onLongPress }:
       <Animated.View style={{ transform: [{ scale: press.scale }] }}>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={a11y}
           accessibilityState={{ disabled }}
           disabled={disabled}
           onPress={() => onPress?.(method)}
@@ -78,6 +80,7 @@ export function CardMethodRow({ expanded = false, children, onPress }: CardRowPr
       <Pressable
         testID="payment-method-card-header"
         accessibilityRole="radio"
+        accessibilityLabel="Credit or debit card, Visa, Mastercard, Amex, Discover"
         accessibilityState={{ selected: expanded, expanded }}
         onPress={onPress}
         style={styles.cardHeader}
