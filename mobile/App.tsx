@@ -1,52 +1,105 @@
+// Throwaway component gallery: every component + variant, static props. Becomes the real checkout later.
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ReactNode } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CardNumberInput, CvvInput, ExpiryInput, FieldState } from './src/components/CardFields';
+import { DevMenuSheet } from './src/components/DevMenuSheet';
+import { OrderSummaryCard } from './src/components/OrderSummaryCard';
+import { PayButton } from './src/components/PayButton';
+import { PaymentMethodList } from './src/components/PaymentMethodRow';
+import { ProcessingOverlay } from './src/components/ProcessingOverlay';
+import { QuantityStepper } from './src/components/QuantityStepper';
+import { ResultView } from './src/components/ResultView';
+import { colors, spacing, type } from './src/theme';
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+const FIELD_STATES: FieldState[] = ['empty', 'invalid', 'valid'];
 
 export default function App() {
-  const [taps, setTaps] = useState(0);
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Gametime Demo</Text>
-      <Pressable
-        testID="tap-me"
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-        onPress={() => setTaps((n) => n + 1)}
-      >
-        <Text style={styles.buttonLabel}>
-          {taps === 0 ? 'Tap me' : `Tapped ${taps}x`}
-        </Text>
-      </Pressable>
+    <View style={styles.root}>
+      <ScrollView testID="gallery" contentContainerStyle={styles.content}>
+        <Text style={styles.h1}>Component Gallery</Text>
+
+        <Section title="Order summary">
+          <OrderSummaryCard />
+        </Section>
+
+        <Section title="Quantity stepper">
+          <QuantityStepper />
+          <QuantityStepper quantity={1} label="At minimum" />
+        </Section>
+
+        <Section title="Payment methods · iOS, wallet provisioned">
+          <PaymentMethodList selected="apple_pay" hidden={['google_pay']} />
+        </Section>
+
+        <Section title="Payment methods · total under $100, no wallet">
+          <PaymentMethodList
+            selected="card"
+            hidden={['apple_pay', 'google_pay']}
+            disabled={{ affirm: 'Available on orders over $100' }}
+          />
+        </Section>
+
+        {FIELD_STATES.map((s) => (
+          <Section key={s} title={`Card form · ${s}`}>
+            <CardNumberInput state={s} />
+            <View style={styles.inline}>
+              <ExpiryInput state={s} />
+              <CvvInput state={s} />
+            </View>
+          </Section>
+        ))}
+
+        <Section title="Pay button">
+          <PayButton />
+          <PayButton variant="applePay" />
+          <PayButton variant="disabled" />
+        </Section>
+
+        <Section title="Processing overlay">
+          <ProcessingOverlay />
+        </Section>
+
+        <Section title="Result · success">
+          <ResultView variant="success" />
+        </Section>
+
+        <Section title="Result · declined">
+          <ResultView variant="declined" />
+        </Section>
+
+        <Section title="Dev menu sheet">
+          <DevMenuSheet />
+        </Section>
+      </ScrollView>
       <StatusBar style="light" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0d0d0d',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  title: {
-    fontSize: 24,
+  root: { flex: 1, backgroundColor: colors.bgBase },
+  content: { paddingHorizontal: spacing.lg, paddingTop: 72, paddingBottom: spacing.xxxl },
+  h1: { ...type.h1, color: colors.textPrimary, marginBottom: spacing.sm },
+  section: { marginTop: spacing.xxl },
+  sectionTitle: {
+    ...type.micro,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: spacing.md,
   },
-  button: {
-    backgroundColor: '#f2f2f2',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-  },
-  buttonLabel: {
-    color: '#111',
-    fontSize: 16,
-    fontWeight: '500',
-  },
+  sectionBody: { gap: spacing.md },
+  inline: { flexDirection: 'row', gap: spacing.md },
 });
