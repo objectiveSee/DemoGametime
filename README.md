@@ -1,6 +1,6 @@
 # Gametime Checkout & Payments — Take-Home
 
-A React Native (Expo) checkout screen with eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim.
+A React Native (Expo) checkout screen with eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim — built end-to-end by AI agents inside an agentic harness this repo also contains (see [How this was built](#how-this-was-built)).
 
 Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
 
@@ -135,4 +135,10 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 
 ## How this was built
 
-By an orchestrated team of AI subagents — one plan, focused agents per subtask, each committing straight to `main`, with Maestro driving the simulator in the loop as UI work landed. `CLAUDE.md` documents the process and its rules; the commit history is the audit trail.
+This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
+
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 352 Jest specs, and the mock server's request log as ground truth (it's what proves single-charge).
+- **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
+- **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
+- **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
+- **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, and `POST /debug/delay` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
