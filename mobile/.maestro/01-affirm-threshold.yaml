@@ -1,5 +1,5 @@
-# Affirm is offered only over $100. The quantity steps up and down a few times so the total's
-# rolling digits play on every reprice: 2 -> 3 -> 4 -> 3 -> 2 -> 1 -> 2. Each tap waits for its
+# Affirm is offered only over $100. The quantity climbs and falls so the total's rolling digits
+# play on every reprice: 2 -> 3 -> 4 -> 5 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 2. Each tap waits for its
 # new total, then a short beat lets the roll finish on camera before the next one.
 appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Order loads, the total rolls, and Affirm tracks the $100 threshold
@@ -19,6 +19,34 @@ name: Order loads, the total rolls, and Affirm tracks the $100 threshold
     timeout: 1000
 - tapOn:
     id: quantity-increment
+- extendedWaitUntil:
+    visible: "$269.30"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: quantity-increment
+- extendedWaitUntil:
+    visible: "$336.00"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: quantity-increment
+- extendedWaitUntil:
+    visible: "$402.70"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: quantity-decrement
+- extendedWaitUntil:
+    visible: "$336.00"
+    timeout: 5000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: quantity-decrement
 - extendedWaitUntil:
     visible: "$269.30"
     timeout: 5000
