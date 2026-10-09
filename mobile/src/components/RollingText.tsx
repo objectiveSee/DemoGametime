@@ -64,10 +64,7 @@ export function RollingText({ value, style, testID }: Props) {
 
   return (
     <View testID={testID}>
-      <Text
-        style={[style, roll && styles.hidden]}
-        onLayout={(e) => setHeight(Math.round(e.nativeEvent.layout.height))}
-      >
+      <Text style={[style, roll && styles.hidden]} onLayout={(e) => setHeight(Math.round(e.nativeEvent.layout.height))}>
         {value}
       </Text>
       {/* Width of one tabular digit, for columns that grow in or shrink away. */}
@@ -115,7 +112,15 @@ type ColumnProps = {
   style?: StyleProp<TextStyle>;
 };
 
-function Column({ column: { from, to }, direction, motion, width: widthValue, height, digitWidth, style }: ColumnProps) {
+function Column({
+  column: { from, to },
+  direction,
+  motion,
+  width: widthValue,
+  height,
+  digitWidth,
+  style,
+}: ColumnProps) {
   if (from === to) return <Text style={style}>{to}</Text>;
 
   const t = (outputRange: number[]) => motion.interpolate({ inputRange: [0, 1], outputRange });
@@ -136,9 +141,7 @@ function Column({ column: { from, to }, direction, motion, width: widthValue, he
       >
         {from}
       </Animated.Text>
-      <Animated.Text
-        style={[style, styles.glyph, { opacity: t([0, 1]), transform: [{ translateY: t([travel, 0]) }] }]}
-      >
+      <Animated.Text style={[style, styles.glyph, { opacity: t([0, 1]), transform: [{ translateY: t([travel, 0]) }] }]}>
         {to}
       </Animated.Text>
     </Animated.View>

@@ -1,0 +1,4 @@
+# Maestro flows keep the double-quoted YAML style of the Maestro docs (and are only re-verified on a simulator).
+.maestro/*.yaml
+# Exported animation data, not hand-edited.
+src/assets/lottie/

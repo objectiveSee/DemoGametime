@@ -194,11 +194,7 @@ export function CheckoutScreen() {
   if (!order) {
     body = (
       <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
-        {error ? (
-          <OrderError message={error} onRetry={retryOrder} />
-        ) : (
-          <Spinner testID="order-loading" />
-        )}
+        {error ? <OrderError message={error} onRetry={retryOrder} /> : <Spinner testID="order-loading" />}
       </View>
     );
   } else {

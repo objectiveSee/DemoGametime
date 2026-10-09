@@ -25,34 +25,34 @@ A working reference for the Gametime look and feel, put together from screenshot
 
 ### 2.1 Core palette
 
-| Token | Hex (~) | Usage |
-|---|---|---|
-| `green-500` (brand) | `#2BD17E` | Primary buttons, selected chips, logo chevron, selected card border |
-| `green-400` (text) | `#4AE3A0` | "From $X" price text, inline links ("Baltimore", "Corporate Gift Cards"), active nav item |
-| `green-700` (pressed) | `#1FA864` | Pressed/hover state for green buttons |
-| `bg-base` | `#0E0F11` | Default page background (homepage) |
-| `bg-deep` | `#05070F` | Deep navy-black background (gift card page, app promo panel) |
-| `surface-1` | `#1A1B1E` | Top nav bar, cards, team chips |
-| `surface-2` | `#25262A` | Form inputs, secondary/"Custom" buttons |
-| `surface-3` | `#6E6E73` | Unselected segmented chips ($50, $100, SMS) |
-| `border-subtle` | `#2C2D31` | Card outlines, section dividers |
-| `border-strong` | `#8A8A8F` | Outlined input (phone number), dropdown outline |
+| Token                 | Hex (~)   | Usage                                                                                     |
+| --------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `green-500` (brand)   | `#2BD17E` | Primary buttons, selected chips, logo chevron, selected card border                       |
+| `green-400` (text)    | `#4AE3A0` | "From $X" price text, inline links ("Baltimore", "Corporate Gift Cards"), active nav item |
+| `green-700` (pressed) | `#1FA864` | Pressed/hover state for green buttons                                                     |
+| `bg-base`             | `#0E0F11` | Default page background (homepage)                                                        |
+| `bg-deep`             | `#05070F` | Deep navy-black background (gift card page, app promo panel)                              |
+| `surface-1`           | `#1A1B1E` | Top nav bar, cards, team chips                                                            |
+| `surface-2`           | `#25262A` | Form inputs, secondary/"Custom" buttons                                                   |
+| `surface-3`           | `#6E6E73` | Unselected segmented chips ($50, $100, SMS)                                               |
+| `border-subtle`       | `#2C2D31` | Card outlines, section dividers                                                           |
+| `border-strong`       | `#8A8A8F` | Outlined input (phone number), dropdown outline                                           |
 
 ### 2.2 Text
 
-| Token | Hex (~) | Usage |
-|---|---|---|
-| `text-primary` | `#FFFFFF` | Headlines, card titles, nav links, button labels on dark |
-| `text-secondary` | `#C9CACD` | Body copy, date/time/venue meta lines |
-| `text-tertiary` | `#8E8F94` | Placeholders, section subheads ("More saving, more fun.") |
-| `text-on-green` | `#0B1A12` | Labels on green buttons ("Add to Cart", "$25", "Email") |
+| Token            | Hex (~)   | Usage                                                     |
+| ---------------- | --------- | --------------------------------------------------------- |
+| `text-primary`   | `#FFFFFF` | Headlines, card titles, nav links, button labels on dark  |
+| `text-secondary` | `#C9CACD` | Body copy, date/time/venue meta lines                     |
+| `text-tertiary`  | `#8E8F94` | Placeholders, section subheads ("More saving, more fun.") |
+| `text-on-green`  | `#0B1A12` | Labels on green buttons ("Add to Cart", "$25", "Email")   |
 
 ### 2.3 Accents and status
 
-| Token | Hex (~) | Usage |
-|---|---|---|
-| `star-yellow` | `#FFC93C` | 5-star rating rows in testimonials |
-| `heart-overlay` | `rgba(0,0,0,0.45)` + white icon | Favorite button on event imagery |
+| Token           | Hex (~)                                                                  | Usage                                                                                |
+| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `star-yellow`   | `#FFC93C`                                                                | 5-star rating rows in testimonials                                                   |
+| `heart-overlay` | `rgba(0,0,0,0.45)` + white icon                                          | Favorite button on event imagery                                                     |
 | Team icon fills | sport-specific (`#D93A1E` orange-red, `#D21F4B` crimson, `#C9B98A` gold) | Circular team avatars in chips; these come from team branding, not the brand palette |
 
 ### 2.4 Gradients
@@ -72,19 +72,20 @@ A working reference for the Gametime look and feel, put together from screenshot
 
 **Families (approximate):** UI text is a neo-grotesque sans that looks like **Inter** (or SF Pro on iOS). The logo and gift card artwork use a **condensed bold display face** (similar to Barlow Condensed or Bebas). Keep that face for brand and marketing art only and never use it for UI text.
 
-| Role | Size (web ~) | Mobile (suggested) | Weight | Notes |
-|---|---|---|---|---|
-| Display / hero | 56–64px | 34pt | 800 | Tight tracking (about -2%), ends with a period |
-| H1 section | 40px | 28pt | 800 | "See what fans like you are saying." |
-| H2 section | 26px | 22pt | 600–700 | "Popular Events near Baltimore", "Recently Viewed" |
-| H3 card title | 18–22px | 17pt | 700 | Event names, value-prop titles |
-| Body | 16px | 15–16pt | 400 | Testimonials, descriptions |
-| Meta | 14px | 13pt | 400–500 | `Sun 10/25 · 1:00 PM · M&T Bank Stadium` |
-| Price | 14px | 13–14pt | 500 | `From $137` in `green-400` |
-| Label | 13–14px | 13pt | 600 | Form section labels, chip labels |
-| Micro | 11px | 11pt | 400 | Floating input label ("Send date") |
+| Role           | Size (web ~) | Mobile (suggested) | Weight  | Notes                                              |
+| -------------- | ------------ | ------------------ | ------- | -------------------------------------------------- |
+| Display / hero | 56–64px      | 34pt               | 800     | Tight tracking (about -2%), ends with a period     |
+| H1 section     | 40px         | 28pt               | 800     | "See what fans like you are saying."               |
+| H2 section     | 26px         | 22pt               | 600–700 | "Popular Events near Baltimore", "Recently Viewed" |
+| H3 card title  | 18–22px      | 17pt               | 700     | Event names, value-prop titles                     |
+| Body           | 16px         | 15–16pt            | 400     | Testimonials, descriptions                         |
+| Meta           | 14px         | 13pt               | 400–500 | `Sun 10/25 · 1:00 PM · M&T Bank Stadium`           |
+| Price          | 14px         | 13–14pt            | 500     | `From $137` in `green-400`                         |
+| Label          | 13–14px      | 13pt               | 600     | Form section labels, chip labels                   |
+| Micro          | 11px         | 11pt               | 400     | Floating input label ("Send date")                 |
 
 Rules:
+
 - Use **middle dots (`·`)** to separate meta fields: `Sat 12/5 · 7:00 PM · Venue`.
 - Truncate long venue names with an ellipsis on a single line. Do not wrap them.
 - Headlines are white and heavy. Subheads underneath are lighter (`text-secondary` or `text-tertiary`) and regular weight.
@@ -94,46 +95,53 @@ Rules:
 ## 4. Components
 
 ### 4.1 Nav bar
+
 - Solid `surface-1` bar about 64px tall. Logo on the left, category links next to it (Sports, Music, Comedy, Theater, Cities, Venues), "Log In" on the right.
 - Links are white, 15–16px, semibold. A seasonal or promoted link ("MLB Playoffs") is shown in `green-400`.
 - Mobile: swap the inline links for a bottom tab bar or a horizontally scrolling category row.
 
 ### 4.2 Search field
+
 - White field (`#FFFFFF`) with a dark placeholder, radius about 6px, a leading magnifier icon, and a height around 56px.
 - This is the one light-on-dark input, and it sits on the hero gradient.
 
 ### 4.3 Event card
+
 - **Image:** 16:9 (~), radius about 6–8px on the image only. The card itself has no background or border.
 - **Favorite button:** 32px circle at the top right of the image, translucent dark fill, white outline heart.
 - **Text stack** below the image, about 8px gap: title (H3, white, bold), then meta line (`text-secondary`), then `From $X` (`green-400`).
 - Cards sit in a horizontal carousel, 4 across on desktop, with a gap of about 24px.
 
 ### 4.4 Carousel controls
+
 - Paired circular arrow buttons (about 40px) aligned to the right of the section header.
 - Fill `surface-2`, white chevron. The disabled (start) arrow drops to about 40% opacity.
 - Mobile: hide the arrows and rely on swipe with snap scrolling, showing a peek of the next card.
 
 ### 4.5 Team chip
+
 - Full pill (radius 9999), `surface-1` fill, height about 72px.
 - A 48px circular icon on the left in the team color with a white sport glyph, followed by the team name in white semibold.
 
 ### 4.6 Buttons
 
-| Variant | Fill | Text | Radius | Example |
-|---|---|---|---|---|
-| Primary | `green-500` | `text-on-green`, 600 | 4–6px | "Add to Cart" (about 56px tall) |
-| Segment, selected | `green-500` | `text-on-green`, 600 | 4–6px | "$25", "Email" |
-| Segment, unselected | `surface-3` | white, 600 | 4–6px | "$50", "SMS" |
-| Secondary / Custom | `surface-2` | white, 600 | 4–6px | "Custom" |
-| Icon button | `surface-2` | white icon | 6px | Cart button |
-| Text link | none | `green-400`, 600 | none | "Corporate Gift Cards" |
-| Store badges | black, white outline | white | 6px | App Store / Google Play |
+| Variant             | Fill                 | Text                 | Radius | Example                         |
+| ------------------- | -------------------- | -------------------- | ------ | ------------------------------- |
+| Primary             | `green-500`          | `text-on-green`, 600 | 4–6px  | "Add to Cart" (about 56px tall) |
+| Segment, selected   | `green-500`          | `text-on-green`, 600 | 4–6px  | "$25", "Email"                  |
+| Segment, unselected | `surface-3`          | white, 600           | 4–6px  | "$50", "SMS"                    |
+| Secondary / Custom  | `surface-2`          | white, 600           | 4–6px  | "Custom"                        |
+| Icon button         | `surface-2`          | white icon           | 6px    | Cart button                     |
+| Text link           | none                 | `green-400`, 600     | none   | "Corporate Gift Cards"          |
+| Store badges        | black, white outline | white                | 6px    | App Store / Google Play         |
 
 ### 4.7 Segmented selectors
+
 - A row of compact rectangular chips (about 40px tall, 8px gap). Exactly one is selected, and the selected chip turns green.
 - Used for gift card value and delivery method. "Custom" opens a free-entry field.
 
 ### 4.8 Form inputs (dark)
+
 - **Filled style (default):** `surface-2` fill, no border, radius about 6px, height about 56px, 16px horizontal padding, placeholder in `text-tertiary`.
 - **Floating label:** when a field has a value, a micro label sits above the value inside the field ("Send date" / `10/09/2026`).
 - **Outlined style:** a 1px `border-strong` outline on a transparent fill with a trailing green arrow submit icon (phone number capture).
@@ -141,15 +149,18 @@ Rules:
 - Section labels ("To", "From", "Gift card value") are 600-weight white text above the group.
 
 ### 4.9 Selectable tiles
+
 - Grid of design thumbnails (3 columns, about 16px gap, radius about 6px).
 - The selected tile gets a 2px `green-500` border. Unselected tiles have a `border-subtle` border.
 
 ### 4.10 Content cards (value props and testimonials)
+
 - Radius about 12px, padding about 24–32px, 1px `border-subtle` border on dark gradient surfaces.
 - Contents from top to bottom: emoji or icon (value props) or a star row (testimonials), then an H3 title, then body text.
 - Inline links inside these cards are white with underline or emphasis.
 
 ### 4.11 Dropdown
+
 - Outlined, radius about 6px, all-caps 13px label ("GENERAL") with a trailing chevron.
 
 ---
@@ -160,12 +171,12 @@ Rules:
 - **Content width:** a centered column of about 1200px on desktop.
 - **Section rhythm:** H2 header and carousel controls in one row, about 24px gap, then the content row. Each section repeats this pattern.
 
-| Element | Radius (~) |
-|---|---|
-| Buttons, segments, inputs, image thumbs | 4–8px |
-| Content cards (value props, testimonials, promo panel) | 12px |
-| Large preview card (gift card preview) | 16px |
-| Team chips, favorite button, carousel arrows | full (pill/circle) |
+| Element                                                | Radius (~)         |
+| ------------------------------------------------------ | ------------------ |
+| Buttons, segments, inputs, image thumbs                | 4–8px              |
+| Content cards (value props, testimonials, promo panel) | 12px               |
+| Large preview card (gift card preview)                 | 16px               |
+| Team chips, favorite button, carousel arrows           | full (pill/circle) |
 
 - **Elevation:** almost none. Depth comes from surface tone steps and gradients, not drop shadows.
 

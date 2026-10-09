@@ -168,7 +168,13 @@ const styles = StyleSheet.create({
   affirmLabel: { fontSize: 17, fontWeight: '600', color: colors.textPrimary },
   caption: { ...type.meta, color: colors.textTertiary, marginTop: spacing.xs, textAlign: 'center' },
   captionDisabled: { color: colors.textSecondary },
-  orRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.lg },
+  orRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.lg,
+  },
   orLine: { flex: 1, height: 1, backgroundColor: colors.borderSubtle },
   orText: { ...type.meta, color: colors.textTertiary },
   cardRow: {

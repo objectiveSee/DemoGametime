@@ -62,9 +62,7 @@ export function DevMenuSheet({
               onPress={() => onChange?.({ platform: p })}
               style={[styles.segment, selected && styles.segmentSelected]}
             >
-              <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
-                {PLATFORM_LABEL[p]}
-              </Text>
+              <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>{PLATFORM_LABEL[p]}</Text>
             </Pressable>
           );
         })}

@@ -63,7 +63,12 @@ export function CardField({
 function FieldError({ testID, message }: { testID: string; message: string }) {
   const [shown] = useState(() => new Animated.Value(0));
   useEffect(() => {
-    Animated.timing(shown, { toValue: 1, duration: 120, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+    Animated.timing(shown, {
+      toValue: 1,
+      duration: 120,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
   }, [shown]);
   const translateY = shown.interpolate({ inputRange: [0, 1], outputRange: [-4, 0] });
   return (

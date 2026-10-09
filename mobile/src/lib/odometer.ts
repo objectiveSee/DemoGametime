@@ -40,7 +40,10 @@ export function planRoll(from: string, to: string): RollPlan | null {
 
   const [oldDigits, newDigits] = [a[2], b[2]];
   const width = Math.max(oldDigits.length, newDigits.length);
-  const pad = (s: string) => Array<string>(width - s.length).fill('').concat(s.split(''));
+  const pad = (s: string) =>
+    Array<string>(width - s.length)
+      .fill('')
+      .concat(s.split(''));
   const olds = pad(oldDigits);
   const news = pad(newDigits);
   const columns = news.map((to, i) => ({ from: olds[i], to }));

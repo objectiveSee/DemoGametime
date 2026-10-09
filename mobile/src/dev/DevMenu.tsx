@@ -28,12 +28,7 @@ export function DevMenuButton() {
         <Text style={styles.glyph}>⚙︎</Text>
         {active ? <View testID="dev-menu-active" style={styles.dot} /> : null}
       </Pressable>
-      <Modal
-        visible={open}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setOpen(false)}
-      >
+      <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
         <DevMenuSheet
           overrides={settings.overrides}
           detectedPlatform={settings.detected.platform}

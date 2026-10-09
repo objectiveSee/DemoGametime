@@ -46,7 +46,12 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
   const reduced = useReducedMotion();
   const [rise] = useState(() => new Animated.Value(reduced ? 1 : 0));
   useEffect(() => {
-    Animated.timing(rise, { toValue: 1, duration: 340, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    Animated.timing(rise, {
+      toValue: 1,
+      duration: 340,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
   }, [rise]);
   const sheetTravel = rise.interpolate({ inputRange: [0, 1], outputRange: [SHEET_TRAVEL, 0] });
 
@@ -88,7 +93,10 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
         />
         <Animated.View
           testID={`express-sheet-${method}`}
-          style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg, transform: [{ translateY: sheetTravel }] }]}
+          style={[
+            styles.sheet,
+            { paddingBottom: insets.bottom + spacing.lg, transform: [{ translateY: sheetTravel }] },
+          ]}
         >
           <View style={styles.grabber} />
           <View style={styles.header}>

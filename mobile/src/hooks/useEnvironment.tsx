@@ -6,12 +6,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
-import {
-  applyOverrides,
-  DEFAULT_OVERRIDES,
-  type Environment,
-  type EnvironmentOverrides,
-} from '../lib/environment';
+import { applyOverrides, DEFAULT_OVERRIDES, type Environment, type EnvironmentOverrides } from '../lib/environment';
 
 export type { Environment } from '../lib/environment';
 
