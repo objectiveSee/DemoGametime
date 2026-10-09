@@ -5,7 +5,7 @@ description: Run, check, and exercise the local mock payment API (server/index.j
 
 # Mock payment server
 
-> `server/index.js` is the source of truth (zero dependencies, ~170 lines). `docs/MOCK_PLAN.md` holds the contract rationale. If this file and the code disagree, the code wins — fix this file.
+> `server/index.js` is the source of truth (zero dependencies, ~170 lines). The contract rationale lives in README.md "Mock API contract". If this file and the code disagree, the code wins — fix this file.
 
 ## Start / stop / check
 

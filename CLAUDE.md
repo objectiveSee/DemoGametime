@@ -32,7 +32,7 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-ho
 ## Testing
 
 - Write spec tests (Jest-style unit tests) liberally for logic — validation, eligibility, state. **Not** Maestro tests.
-- Maestro (via the `mcp__maestro__*` tools) is the primary driver for actually exercising the app in the simulator — manual verification, not scripted test suites.
+- Maestro (via the `mcp__maestro__*` tools) is the interactive driver for exercising the app in the simulator while building. The committed suite in `mobile/.maestro/` (run with `maestro test .maestro` from `mobile/`; needs Metro, the mock server, and Expo Go on a booted simulator) is requirement-proof: each numbered flow demonstrates one rubric requirement end-to-end.
 - `.claude/skills/maestro/SKILL.md` is a **living document**: whoever uses Maestro and hits tips, gotchas, or breakages folds them back into the skill. Keep it about the craft of running Maestro smoothly (device selection, flakiness, timing, common errors) — not app-code specifics.
 
 ## Linting

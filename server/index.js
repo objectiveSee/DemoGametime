@@ -1,5 +1,5 @@
 // Mock payment API for the checkout demo. Zero dependencies: `node server/index.js`.
-// Contract and rationale: docs/MOCK_PLAN.md. All money is integer cents.
+// Contract and rationale: README.md "Mock API contract". All money is integer cents.
 const http = require('node:http');
 const crypto = require('node:crypto');
 
@@ -55,7 +55,7 @@ function luhnValid(number) {
   return sum % 10 === 0;
 }
 
-// Magic triggers (docs/MOCK_PLAN.md §3). Returns null on success or a failure tuple.
+// Magic triggers (README.md "Mock API contract"). Returns null on success or a failure tuple.
 function decide(body) {
   if (body.method === 'card') {
     const number = String(body.card?.number ?? '').replace(/\s/g, '');
