@@ -2,9 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing, type } from '../theme';
 import { PayButton } from './PayButton';
 
-type Props =
-  | { variant: 'success'; confirmationCode?: string }
-  | { variant: 'declined'; reason?: string };
+type Props = { variant: 'success'; confirmationCode?: string } | { variant: 'declined'; reason?: string };
 
 export function ResultView(props: Props) {
   const success = props.variant === 'success';
@@ -25,9 +23,7 @@ export function ResultView(props: Props) {
       ) : (
         <>
           <Text style={styles.title}>Payment declined.</Text>
-          <Text style={styles.body}>
-            {props.reason ?? 'Your bank declined this card. You have not been charged.'}
-          </Text>
+          <Text style={styles.body}>{props.reason ?? 'Your bank declined this card. You have not been charged.'}</Text>
           <View style={styles.retry}>
             <PayButton label="Try Again" />
           </View>

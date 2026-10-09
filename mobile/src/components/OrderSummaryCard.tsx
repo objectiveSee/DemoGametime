@@ -25,8 +25,12 @@ export function OrderSummaryCard({
 }: Props) {
   return (
     <View testID="order-summary-card" style={styles.card}>
-      <Text style={styles.title} numberOfLines={2}>{title}</Text>
-      <Text style={styles.meta} numberOfLines={1}>{meta}</Text>
+      <Text style={styles.title} numberOfLines={2}>
+        {title}
+      </Text>
+      <Text style={styles.meta} numberOfLines={1}>
+        {meta}
+      </Text>
       <Text style={styles.seats}>{seats}</Text>
       <View style={styles.divider} />
       {lines.map((l) => (
