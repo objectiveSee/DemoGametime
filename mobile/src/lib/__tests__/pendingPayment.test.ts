@@ -182,6 +182,14 @@ describe('recoverPendingPayment', () => {
     expect(await loadSnapshot()).toEqual(cardSnapshot);
   });
 
+  it('returns the definitive answer even when clearing the snapshot fails', async () => {
+    await persistSnapshot(cardSnapshot);
+    jest.spyOn(AsyncStorage, 'removeItem').mockRejectedValueOnce(new Error('disk'));
+    const outcome = await recoverPendingPayment(cardSnapshot, async () => ({ payment: succeeded, replayed: true }));
+    expect(outcome.kind).toBe('succeeded');
+    expect(await loadSnapshot()).toEqual(cardSnapshot);
+  });
+
   it('treats a 409 as not charged and clears the snapshot', async () => {
     await persistSnapshot(cardSnapshot);
     const outcome = await recoverPendingPayment(cardSnapshot, () =>

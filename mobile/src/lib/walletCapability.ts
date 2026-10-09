@@ -15,7 +15,7 @@ export const checkGooglePaySetUp = (): Promise<boolean> => answer(true);
 
 export type WalletCapability = { applePayCapable: boolean; googlePaySetUp: boolean };
 
-/** Until the checks answer, no wallet is offered. Card and Affirm don't wait on them. */
+/** Until the checks answer, no wallet is offered; checkout holds its loading spinner meanwhile (~50 ms). */
 export const WALLETS_PENDING: WalletCapability = { applePayCapable: false, googlePaySetUp: false };
 
 /** Both checks: the platform override can swap in the other platform's wallet. A failed check is a no. */

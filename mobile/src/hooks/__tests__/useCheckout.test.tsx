@@ -79,6 +79,34 @@ describe('useCheckout: start new order', () => {
   });
 });
 
+describe('useCheckout: a failed snapshot clear', () => {
+  it('still shows the result, and the surviving snapshot replays to the same receipt next launch', async () => {
+    jest.spyOn(AsyncStorage, 'removeItem').mockRejectedValueOnce(new Error('disk'));
+    const checkout = await mountLoaded();
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(checkout.current.state).toMatchObject({
+      status: 'succeeded',
+      receipt: { confirmationCode: 'GT-ABC123' },
+    });
+    expect(checkout.current.busy).toBe(false);
+    expect(await loadSnapshot()).toMatchObject({ idempotencyKey: 'key-1' });
+
+    // Next launch: the server replays its stored result for the same key.
+    (postPayment as jest.Mock).mockResolvedValue({ replayed: true, payment: succeededPayment });
+    const relaunched = await mountLoaded();
+    await act(async () => {});
+    expect(postPayment).toHaveBeenCalledTimes(2);
+    expect((postPayment as jest.Mock).mock.calls[1][0]).toMatchObject({ idempotencyKey: 'key-1' });
+    expect(relaunched.current.state).toMatchObject({
+      status: 'succeeded',
+      receipt: { confirmationCode: 'GT-ABC123' },
+    });
+    expect(await loadSnapshot()).toBeNull();
+  });
+});
+
 describe('useCheckout: relaunch recovery while the server is down', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());

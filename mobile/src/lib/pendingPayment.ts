@@ -63,6 +63,14 @@ export async function clearSnapshot(): Promise<void> {
   await AsyncStorage.removeItem(PENDING_PAYMENT_KEY);
 }
 
+/**
+ * Clear after a definitive answer. A failed clear must not swallow that answer: the surviving
+ * snapshot is harmless, since the next launch replays the same key and gets the same stored result.
+ */
+export async function clearSnapshotBestEffort(): Promise<void> {
+  await clearSnapshot().catch(() => {});
+}
+
 /** Splits a snapshot back into the POST body parts, preserving its key and amount exactly. */
 export function attemptFromSnapshot(snapshot: PaymentSnapshot): {
   attempt: PaymentAttempt;
@@ -87,7 +95,7 @@ export function recoveryOutcome(snapshot: PaymentSnapshot, { payment, replayed }
 
 /**
  * Resolves a pending snapshot by re-POSTing it with the same idempotency key. Clears the snapshot
- * only on a definitive answer; when the outcome is still unknown (offline, 5xx) it rethrows and
+ * (best effort) only on a definitive answer; when the outcome is still unknown (offline, 5xx) it rethrows and
  * the snapshot stays for the next attempt.
  */
 export async function recoverPendingPayment(
@@ -104,6 +112,6 @@ export async function recoverPendingPayment(
     // key: nothing was taken.
     outcome = { kind: 'not_charged' };
   }
-  await clearSnapshot();
+  await clearSnapshotBestEffort();
   return outcome;
 }

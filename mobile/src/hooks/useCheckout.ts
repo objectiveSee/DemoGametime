@@ -18,7 +18,7 @@ import {
 } from '../lib/paymentsApi';
 import {
   attemptFromSnapshot,
-  clearSnapshot,
+  clearSnapshotBestEffort,
   loadSnapshot,
   persistSnapshot,
   recoverPendingPayment,
@@ -26,7 +26,7 @@ import {
 } from '../lib/pendingPayment';
 
 const RECOVERY_BACKOFF_MS = [1000, 2000, 4000, 8000];
-// After this many failed replays (~23 s of backoff) the checking overlay reassures the fan; the
+// After this many failed replays (15 s of backoff) the checking overlay reassures the fan; the
 // replays carry on at the 8 s cap, and the snapshot stays put until the server answers.
 const SLOW_CHECK_AFTER_ATTEMPTS = 5;
 
@@ -102,13 +102,13 @@ export function useCheckout() {
           await resolveUnknown(snapshot);
         } else {
           // A 4xx is rejected before any charge is made.
-          await clearSnapshot();
+          await clearSnapshotBestEffort();
           dispatch({ type: 'RESULT_DECLINED', failure: toFailure(err) });
         }
         return;
       }
 
-      await clearSnapshot();
+      await clearSnapshotBestEffort();
       const { payment } = response;
       dispatch(
         payment.status === 'succeeded'
@@ -208,8 +208,8 @@ export function useCheckout() {
   );
 
   const retry = useCallback(() => dispatch({ type: 'RETRY' }), []);
-  // Only legal from the confirmation. The pending-payment snapshot is already gone by then:
-  // every definitive answer clears it before the success is dispatched.
+  // Only legal from the confirmation. Every definitive answer clears the pending-payment snapshot
+  // before the success is dispatched (a failed clear just replays to the same receipt next launch).
   const startNewOrder = useCallback(() => {
     setNotice(null);
     dispatch({ type: 'NEW_ORDER' });
