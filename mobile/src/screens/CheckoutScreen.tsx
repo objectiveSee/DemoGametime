@@ -135,10 +135,10 @@ export function CheckoutScreen() {
   // or "Force express decline" in the dev menu).
   const simulateDecline = useRef(false);
 
-  // The Affirm stub is redirect-shaped: a real browser opens over the app (which loses focus, like
-  // a real Affirm handoff), and the hosted page deep-links back with a token or a cancel. The
-  // ephemeral session skips iOS's sign-in consent alert; the await spans the whole round trip,
-  // including any backgrounding while the browser is up.
+  // The Affirm stub is redirect-shaped: a real browser opens over the app, and the hosted page
+  // deep-links back with a token or a cancel. The ephemeral session skips iOS's sign-in consent
+  // alert; the await spans the whole round trip, including Android backgrounding the app for the
+  // Custom Tab.
   const startAffirm = async (order: Order, declined: boolean) => {
     if (!checkout.startExpress('affirm')) return;
     const returnUrl = Linking.createURL('affirm');

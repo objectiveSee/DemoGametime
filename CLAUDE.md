@@ -2,7 +2,7 @@
 
 Quick take-home demo — favor working-and-simple over polished; don't get hung up on nitpicky stuff.
 
-Development targets the **iOS simulator** (easiest to drive and iterate on). Android is deferred until the end.
+Development targets the **iOS simulator** (easiest to drive and iterate on). The Android emulator is also sanctioned and the Maestro suite passes there; see the Android section of `.claude/skills/maestro/SKILL.md` for running it.
 
 Layout: `mobile/` (Expo app; Maestro suite in `mobile/.maestro/`) · `server/` (mock payment API) · `docs/` (take-home PDF + REQUIREMENTS.md) · `.claude/skills/` (maestro, mock-server)
 

@@ -1,5 +1,5 @@
-# Affirm is redirect-shaped: the tap opens a real browser (ASWebAuthenticationSession) over the
-# app — the app genuinely loses focus — and the hosted demo page deep-links back with a token,
+# Affirm is redirect-shaped: the tap opens a real browser over the app (ASWebAuthenticationSession
+# on iOS, a Chrome Custom Tab on Android), and the hosted demo page deep-links back with a token,
 # which completes the purchase with no further in-app interaction.
 #
 # Maestro on iOS cannot see web content (the browser's accessibility tree isn't exposed), so the
@@ -10,6 +10,13 @@ appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Expone
 name: Affirm redirect round trip
 ---
 - runFlow: _launch.yaml
+# A Custom Tab left open by an earlier run comes back instead of the new page (with the old
+# order's URL), so start Chrome fresh.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - stopApp: com.android.chrome
 - tapOn: "Pay over time with affirm"
 - waitForAnimationToEnd:
     timeout: 5000

@@ -8,7 +8,7 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) 
 
 This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
 
-- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 381 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
 - **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
 - **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
 - **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
@@ -27,7 +27,7 @@ cd mobile
 npm install
 npx expo start --ios            # opens in Expo Go on the booted simulator
 
-# 3. Unit specs — 364 tests over validation, eligibility, state, recovery
+# 3. Unit specs — 381 tests over validation, eligibility, state, recovery
 cd mobile && npm test
 ```
 
@@ -69,7 +69,7 @@ Eligibility is one pure function, `mobile/src/lib/eligibility.ts`:
 | Affirm | order total strictly over $100 |
 | Card | always |
 
-Inputs come from `useEnvironment()`: `Platform.OS` is real; the wallet capability checks are stubs standing in for `PKPaymentAuthorizationController.canMakePayments(usingNetworks:)` / Google Pay `isReadyToPay` (neither is reachable from Expo Go). The Affirm input is the server-priced total, so changing quantity genuinely re-evaluates eligibility — the pricing is tuned so 1 ticket ($69.20) vs 2 ($135.90) crosses the threshold with one tap.
+Inputs come from `useEnvironment()`: `Platform.OS` is real; the wallet checks (`mobile/src/lib/walletCapability.ts`) are async stubs shaped like `PKPaymentAuthorizationController.canMakePayments(usingNetworks:)` / Google Pay `isReadyToPay` (neither is reachable from Expo Go). They answer `true` after a short delay; a `false` or a failed check hides that wallet, and swapping in the real SDK call changes nothing else. The payment methods wait behind the loading spinner until the checks answer, so a wallet button never pops in above Affirm under the fan's finger. The Affirm input is the server-priced total, so changing quantity genuinely re-evaluates eligibility — the pricing is tuned so 1 ticket ($69.20) vs 2 ($135.90) crosses the threshold with one tap.
 
 **Real detection is the default.** The gear at the top right opens the environment simulator (a native page sheet) for reviewing every branch on one device:
 
@@ -78,7 +78,7 @@ Inputs come from `useEnvironment()`: `Platform.OS` is real; the wallet capabilit
 - Force express decline — the next authorization hands back a declined token
 - Component gallery toggle, and Reset back to detection
 
-Two deliberate properties: overrides are **in-memory only** (a persisted override would survive the kill-and-relaunch demo and make a fresh launch lie about the device), and overrides can only **remove** capabilities, never fake one the device doesn't report — the merge is `detected && !override`. A dot on the gear marks any active override. Environment changes apply live but never mid-attempt: a busy checkout keeps its method list until the attempt settles.
+Two deliberate properties: overrides are **in-memory only** (a persisted override would survive the kill-and-relaunch demo and make a fresh launch lie about the device), and the wallet toggles can only **remove** a capability, never fake one the device doesn't report — the merge is `detected && !override`. The platform override is different by design: it substitutes the platform outright, so a reviewer with one device sees the other platform's wallet. A dot on the gear marks any active override. Environment changes apply live but never mid-attempt: a busy checkout keeps its method list until the attempt settles.
 
 ## Mock API contract
 
@@ -115,7 +115,7 @@ plus `checking` — "we don't know yet" — entered from a relaunch with a pendi
 
 **Express:** one tap opens the authorization — a stub wallet sheet that mimics the real shape (slides up, shows the total, fake biometric, auto-authorizes; cancellable via ✕ or scrim until authorization fires), or for Affirm a real browser redirect (`openAuthSessionAsync` against the server's hosted page) that deep-links back. Authorization yields a token; the snapshot is persisted **with the token**, then the same POST path runs. No second submit anywhere.
 
-**Backgrounding:** there is deliberately no AppState choreography. A biometric-style prompt (`inactive`) or an app switch (`background`) suspends JS; the in-flight `fetch` completes when the app returns, and the state machine picks up where it was. Affirm genuinely backgrounds the app — the await spans the whole browser round trip. The design treats **kill as the general case** and makes it safe, which makes mere backgrounding free.
+**Backgrounding:** there is deliberately no AppState choreography. A system prompt (`inactive`) leaves JS running; an app switch (`background`) suspends it, the in-flight `fetch` completes when the app returns, and the state machine picks up where it was. Affirm's browser takes the screen differently per platform (measured with an `AppState` listener): on iOS the auth session presents over the app and `AppState` never leaves `active`; on Android the Chrome Custom Tab fully backgrounds the app (`background` → `active`). Either way the await spans the whole browser round trip. The design treats **kill as the general case** and makes it safe, which makes mere backgrounding free.
 
 **Kill-and-relaunch:** the snapshot is written *before* every POST, so a killed app leaves evidence. On launch, a found snapshot moves checkout to `checking` ("Checking your payment…") and re-POSTs the snapshot verbatim — same key, same amount — with exponential backoff until the server answers definitively. Replay semantics guarantee the answer is the *original* charge's outcome: success shows the original confirmation code; a decline shows the decline. One honest wrinkle: **card numbers are never persisted**, so a card replay carries no card. If the server says `replayed: true`, the original outcome stands; if it doesn't (the original POST never arrived), the card-less request fails validation — which proves nothing was charged, so recovery resets to idle with "You have not been charged." That heuristic trades a tiny ambiguity window for never writing a PAN to disk.
 

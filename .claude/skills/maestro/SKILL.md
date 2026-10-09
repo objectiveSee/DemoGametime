@@ -1,6 +1,6 @@
 ---
 name: maestro
-description: Drive this project's app on the iOS simulator using the Maestro MCP tools (mcp__maestro__*). Use when asked to screenshot the app, tap/type/assert in the running app, run a Maestro flow, or verify UI changes end-to-end. Triggers - "maestro", "screenshot the app", "tap on", "drive the app", "run a flow", "verify on the simulator".
+description: Drive this project's app on the iOS simulator (or the Android emulator) using the Maestro MCP tools (mcp__maestro__*). Use when asked to screenshot the app, tap/type/assert in the running app, run a Maestro flow, or verify UI changes end-to-end. Triggers - "maestro", "screenshot the app", "tap on", "drive the app", "run a flow", "verify on the simulator".
 ---
 
 # Maestro — driving the app on the iOS Simulator
@@ -9,7 +9,7 @@ description: Drive this project's app on the iOS simulator using the Maestro MCP
 
 ## Rules
 
-- **iOS simulator ONLY.** Never start or touch Android emulators (e.g. `Pixel_9_API_35` shows up in `list_devices` — ignore it). Android is deferred until the end of the project.
+- **The iOS simulator is the primary target.** The Android emulator is sanctioned too, and the committed suite passes on both; see [Android](#android) for its device, app id and quirks.
 - The app runs inside **Expo Go**, so the app id for launch/stop/flow headers is **`host.exp.Exponent`** — NOT the bundle id in `app.json` (that only applies after a prebuild/dev-client build, which we are not using).
 - Maestro/simulator work happens from the **main worktree** only (see CLAUDE.md): Metro runs there, so agents in isolated worktrees must not drive the simulator.
 - If the Maestro MCP tools are deferred, load them all in ONE ToolSearch call: `select:mcp__maestro__list_devices,mcp__maestro__take_screenshot,mcp__maestro__tap_on,...`
@@ -102,16 +102,19 @@ appId: host.exp.Exponent
 - **Timing Maestro steps:** MCP results carry no timestamps. Drop a `runScript` that does `http.get('http://localhost:4000/health?mark=…')` between steps and read the gaps off the mock server's log.
 - **A sheet's controls aren't there the instant the tap that opens it returns.** Tapping a modal's ✕ (by `point:` or even by `id:`) straight after the opening tap can land before the modal mounts, so it silently does nothing and an auto-advancing sheet proceeds. `extendedWaitUntil` on the control's id first, then a `point:` tap, lands reliably inside a ~3 s window.
 - **Clearing a filled field:** tapping it puts the cursor mid-text and pops the edit callout; `tapOn: "Select All"` then `eraseText` empties it in one go.
+- **Content that arrives a beat after the screen settles steals taps.** A `tapOn` by text resolves the element's position and then taps it; if something inserts above it in between (a button that appears once an async check answers), the tap lands on whatever slid into that spot. The flow passes with a hold before the tap and fails without one. Make the screen render its final layout in one go rather than padding the flow.
+- **Probing app state from JS:** in this Expo setup `console.log` doesn't reach Metro's log file (`mobile/.expo/dev-server.log`), but `console.warn` does, tagged with the platform's bundle. A temporary `console.warn('[PROBE]', Date.now(), …)` plus `grep PROBE` reads e.g. `AppState` transitions during a flow. Warnings also raise a LogBox toast at the bottom of the screen, which can cover tap targets; remove the probe before running the suite.
 
 ## Android
 
-The iOS-only rule above is the default. Use the emulator only when a task explicitly asks for Android.
+The iOS simulator stays the default for interactive work; run the suite on Android whenever a change could behave differently there.
 
 - **Device:** AVD `Pixel_9_API_35` (Android 15, 1080x2424). `list_devices` shows it twice: use the **`emulator-5554`** entry (`connected: true`) as `device_id`. The bare AVD-name entry is the not-running image. With the iOS sim also booted, always pass the device explicitly.
 - **App id is all-lowercase `host.exp.exponent`** (iOS is `host.exp.Exponent`). It's case-sensitive. The committed flows pick it with `appId: "${maestro.platform == 'android' ? ... : ...}"` (quoted, or the YAML `:` in the ternary breaks parsing), so they need no `-e`.
 - **Running the suite:** `run_flow_files` with `device_id: emulator-5554` and the 10 numbered flows, no env (CLI: `maestro --device emulator-5554 test .maestro`). `adb reverse tcp:8081 tcp:8081` must be active. Platform differences live in the flows: `${output.walletButton}` (set in `_launch.yaml`) is the detected wallet's testID, and `runFlow` with `when: platform:` handles the rest.
 - **A cold `exp://` intent can be dropped.** `stopApp` + `openLink` lands on the launcher or Expo Go's home screen about half the time. `_open-project.yaml` runs `launchApp` and waits for Expo Go's home screen before `openLink`. Use it for any cold start.
 - **Chrome's first-run screen** ("Use without an account") covers the first Custom Tab on a fresh emulator, so flow 09 dismisses it when it's there. Maestro can see Custom Tab web content on Android, so taps there go by text, not position.
+- **A stale Custom Tab comes back instead of the new one.** If an earlier run (or another agent) left a Custom Tab open, the next `openAuthSessionAsync` can show that old page, with the old URL's amount and query params, so the flow completes the wrong attempt (seen as an unexpected decline). `stopApp: com.android.chrome` before opening it; flow 09 does. Check the page's text (e.g. the amount) in `inspect_view_hierarchy` when a redirect flow misbehaves.
 - **Loading the project:** `adb reverse tcp:8081 tcp:8081` (redo after an emulator restart), then `adb shell am start -a android.intent.action.VIEW -d exp://127.0.0.1:8081 host.exp.exponent`. Never `expo start --android`; Metro is already running. First open shows Expo Go's dev sheet: tap Continue, then ✕. The emulator reaches the mock server at `10.0.2.2:4000` with no tunnel.
 - **The first `am start` after `am force-stop` can land on the launcher.** Screenshot, and re-send the same intent if needed.
 - **MCP calls fail with `UNAVAILABLE: io exception`** when the Android driver isn't running (nothing listening, no `adb forward`). Start it by hand and the next MCP call works: `adb forward tcp:7001 tcp:7001`, then in the background `adb shell am instrument -w -m -e debug false -e class 'dev.mobile.maestro.MaestroDriverService#grpcServer' dev.mobile.maestro.test/androidx.test.runner.AndroidJUnitRunner`.
