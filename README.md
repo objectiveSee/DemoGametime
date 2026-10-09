@@ -17,7 +17,7 @@ cd mobile
 npm install
 npx expo start --ios            # opens in Expo Go on the booted simulator
 
-# 3. Unit specs — 352 tests over validation, eligibility, state, recovery
+# 3. Unit specs — 364 tests over validation, eligibility, state, recovery
 cd mobile && npm test
 ```
 
@@ -137,7 +137,7 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 
 This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
 
-- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 352 Jest specs, and the mock server's request log as ground truth (it's what proves single-charge).
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server's request log as ground truth (it's what proves single-charge).
 - **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
 - **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
 - **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
