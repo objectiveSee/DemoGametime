@@ -10,9 +10,16 @@ import { Animated, Easing, View } from 'react-native';
 
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
-type Props = { visible: boolean; children: ReactNode; durationMs?: number };
+type Props = {
+  visible: boolean;
+  children: ReactNode;
+  durationMs?: number;
+  // Called once the children are fully shown: when the expand lands, or straight away under
+  // Reduce Motion. Whatever needs their final size (scrolling them into view) waits for this.
+  onShown?: () => void;
+};
 
-export function Collapse({ visible, children, durationMs = 300 }: Props) {
+export function Collapse({ visible, children, durationMs = 300, onShown }: Props) {
   const reduced = useReducedMotion();
   // The visibility the last animation landed on. While it lags `visible`, we're mid-transition.
   const [settled, setSettled] = useState(visible);
@@ -26,14 +33,21 @@ export function Collapse({ visible, children, durationMs = 300 }: Props) {
   const rendered = visible || settled;
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced) {
+      if (visible) onShown?.();
+      return;
+    }
     const animation = Animated.timing(progress, {
       toValue: visible ? 1 : 0,
       duration: durationMs,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: false, // height can't run on the native driver
     });
-    animation.start(({ finished }) => finished && setSettled(visible));
+    animation.start(({ finished }) => {
+      if (!finished) return;
+      setSettled(visible);
+      if (visible) onShown?.();
+    });
     return () => animation.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- animate on visibility changes only
   }, [visible]);

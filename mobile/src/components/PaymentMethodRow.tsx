@@ -60,10 +60,10 @@ export function ExpressPayButton({ method, disabledHint, onPress, onLongPress }:
   );
 }
 
-type CardRowProps = { expanded?: boolean; children?: ReactNode; onPress?: () => void };
+type CardRowProps = { expanded?: boolean; children?: ReactNode; onPress?: () => void; onFormShown?: () => void };
 
 // The card path is the only selectable row; selecting it expands the form + Pay button.
-export function CardMethodRow({ expanded = false, children, onPress }: CardRowProps) {
+export function CardMethodRow({ expanded = false, children, onPress, onFormShown }: CardRowProps) {
   // The chevron turns over rather than swapping glyphs.
   const [turn] = useState(() => new Animated.Value(expanded ? 1 : 0));
   useEffect(() => {
@@ -94,7 +94,7 @@ export function CardMethodRow({ expanded = false, children, onPress }: CardRowPr
         </View>
         <Animated.Text style={[styles.chevron, { transform: [{ rotate }] }]}>⌄</Animated.Text>
       </Pressable>
-      <Collapse visible={expanded && !!children}>
+      <Collapse visible={expanded && !!children} onShown={onFormShown}>
         <View style={styles.cardBody}>{children}</View>
       </Collapse>
     </View>
@@ -111,6 +111,8 @@ type ListProps = {
   onExpressPress?: (method: ExpressMethodId) => void;
   onExpressLongPress?: (method: ExpressMethodId) => void;
   onCardPress?: () => void;
+  // The card form has finished opening.
+  onCardFormShown?: () => void;
 };
 
 export function PaymentMethodList({
@@ -121,6 +123,7 @@ export function PaymentMethodList({
   onExpressPress,
   onExpressLongPress,
   onCardPress,
+  onCardFormShown,
 }: ListProps) {
   return (
     <View testID="payment-method-list">
@@ -145,7 +148,7 @@ export function PaymentMethodList({
           <View style={styles.orLine} />
         </View>
       </Collapse>
-      <CardMethodRow expanded={cardExpanded} onPress={onCardPress}>
+      <CardMethodRow expanded={cardExpanded} onPress={onCardPress} onFormShown={onCardFormShown}>
         {cardForm}
       </CardMethodRow>
     </View>

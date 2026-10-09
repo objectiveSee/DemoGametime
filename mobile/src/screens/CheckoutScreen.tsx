@@ -20,6 +20,7 @@ import { useCardForm } from '../hooks/useCardForm';
 import { useCheckout } from '../hooks/useCheckout';
 import { useDevSettings, useEnvironment } from '../hooks/useEnvironment';
 import { useOrder } from '../hooks/useOrder';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { cvcLength, isCardNumberComplete, validateCardNumber, type CardBrand } from '../lib/cardValidation';
 import { eligibleMethods, isExpressMethod } from '../lib/eligibility';
 import { affirmCheckoutUrl, expressAuthToken, parseAffirmReturn } from '../lib/expressAuth';
@@ -60,6 +61,7 @@ export function CheckoutScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const expiryRef = useRef<TextInput>(null);
   const cvcRef = useRef<TextInput>(null);
+  const reduced = useReducedMotion();
 
   const express = useMemo(
     () =>
@@ -70,6 +72,16 @@ export function CheckoutScreen() {
         : [],
     [environment, order],
   );
+
+  // Once the card form has finished opening, bring all of it into view. Scrolling as it starts
+  // would stop short of the still-growing content, and even at the end the final height reaches
+  // the native scroll view a frame later. If the keyboard is already up, the keyboard scroll
+  // below has this covered.
+  const revealCardForm = () => {
+    requestAnimationFrame(() => {
+      if (!Keyboard.isVisible()) scrollRef.current?.scrollToEnd({ animated: !reduced });
+    });
+  };
 
   // Keep the Pay button above the keyboard while the card form is being filled.
   useEffect(() => {
@@ -250,6 +262,7 @@ export function CheckoutScreen() {
             haptics.tap();
             setCardExpanded((open) => !open);
           }}
+          onCardFormShown={revealCardForm}
           cardForm={
             <>
               <CardField
