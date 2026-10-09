@@ -4,7 +4,7 @@ import { colors, radii, spacing, type } from '../theme';
 const COPY = {
   processing: { message: 'Processing payment…', sub: "Don't close the app." },
   // Relaunched with a payment in flight: outcome unknown until the server answers.
-  checking: { message: 'Checking your payment…', sub: "We're confirming whether it went through." },
+  checking: { message: 'Checking your payment…', sub: 'Hang tight — confirming your order status.' },
 };
 
 // Fills its nearest positioned parent; dims whatever is underneath.

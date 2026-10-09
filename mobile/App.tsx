@@ -85,7 +85,7 @@ export default function App() {
           </View>
         </Section>
 
-        <Section title="Overlay · checking (relaunched mid-payment)">
+        <Section title="Overlay · restoring / checking">
           <View style={styles.overlayDemo}>
             <OrderSummaryCard />
             <ProcessingOverlay variant="checking" />

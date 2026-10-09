@@ -76,3 +76,5 @@ appId: host.exp.Exponent
 - **Saving screenshots to a known path:** `take_screenshot` only returns the image inline (stored under Claude's tool-results). To write a PNG where you want it, use `xcrun simctl io <UDID> screenshot <path>.png`. That capture also includes the Dynamic Island, which Maestro's doesn't.
 - **Hot reload keeps scroll position** — after an edit, re-screenshot in place. No relaunch needed.
 - **`scrollUntilVisible` by `id` can miss plain RN `View`s** (testID on a non-text container) even when they're on screen — it reports "No visible element found". Target visible text instead.
+- **Text matching uses the source string, not the rendered casing.** A label styled with `textTransform: 'uppercase'` shows as "OVERLAY" on screen but must be matched as written in code ("Overlay").
+- `scrollUntilVisible` with `centerElement: true` can overshoot on long lists; follow up with a short swipe and re-screenshot.
