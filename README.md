@@ -6,7 +6,7 @@ The harness lives in this repo alongside the app (see [Development harness](#dev
 
 ## Development harness
 
-An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately; this section doubles as the AI-usage disclosure the submission asks for.
+An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately; this section doubles as the AI usage disclosure the submission asks for.
 
 The human work went into two things. First, the setup: building the harness itself so the loop could run on its own —
 
