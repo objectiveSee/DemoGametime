@@ -4,8 +4,9 @@
 #
 # Maestro on iOS cannot see web content (the browser's accessibility tree isn't exposed), so the
 # in-browser taps are positional against the page we control: "Approve plan" sits at 50%,65% on
-# this device size. Screenshots are the ground truth if this flow misbehaves.
-appId: host.exp.Exponent
+# this device size. Screenshots are the ground truth if this flow misbehaves. On Android the page
+# opens in a Chrome Custom Tab, whose content Maestro can see, so the button is tapped by text.
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Affirm redirect round trip
 ---
 - runFlow: _launch.yaml
@@ -13,8 +14,23 @@ name: Affirm redirect round trip
 - waitForAnimationToEnd:
     timeout: 5000
 # "Approve plan" on the hosted page.
-- tapOn:
-    point: "50%, 65%"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: "50%, 65%"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      # A fresh emulator's Chrome shows its first-run screen before the page.
+      - runFlow:
+          when:
+            visible: "Use without an account"
+          commands:
+            - tapOn: "Use without an account"
+      - tapOn: "Approve plan"
 - extendedWaitUntil:
     visible: "You're going."
     timeout: 25000

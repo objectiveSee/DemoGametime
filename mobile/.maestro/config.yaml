@@ -1,5 +1,6 @@
 # `maestro test .maestro` runs the numbered requirement flows; _*.yaml are shared subflows.
-# Needs Metro (:8081), the mock server (:4000) and Expo Go on a booted iOS simulator.
+# Needs Metro (:8081), the mock server (:4000) and Expo Go on a booted iOS simulator or Android
+# emulator (Android: `adb reverse tcp:8081 tcp:8081` first; pass --device when both are up).
 flows:
   - "0*.yaml"
   - "1*.yaml"

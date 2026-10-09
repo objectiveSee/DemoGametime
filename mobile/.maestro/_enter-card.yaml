@@ -1,6 +1,6 @@
 # Shared subflow: open the card form and type ${NUMBER}, ${EXPIRY} (MMYY), ${CVC}.
 # Focus auto-advances number -> expiry -> CVC once each field is complete.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 ---
 - tapOn:
     id: payment-method-card-header

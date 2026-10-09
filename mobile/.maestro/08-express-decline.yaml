@@ -1,12 +1,12 @@
 # Express decline handled gracefully. Long-pressing an express button is the hidden test hook:
 # the same one-tap flow runs, but the stub authorization hands back a tok_declined… token, which
 # the server declines. The fan sees the declined screen and Try Again lands back on idle checkout.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Express declined, then back to checkout
 ---
 - runFlow: _launch.yaml
 - longPressOn:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - extendedWaitUntil:
     visible: "Payment declined."
     timeout: 25000
@@ -15,5 +15,5 @@ name: Express declined, then back to checkout
     id: retry-button
 - assertVisible: "or pay with card"
 - assertVisible:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - runFlow: _hold.yaml

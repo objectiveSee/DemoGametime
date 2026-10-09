@@ -1,9 +1,11 @@
 # Shared subflow: cold-start Expo Go straight into the project (needs Metro on :8081 and the
-# mock server on :4000) and wait for the order to load.
-appId: host.exp.Exponent
+# mock server on :4000) and wait for the order to load. Every flow derives Expo Go's app id from
+# the device platform (Android's is all-lowercase), so the same suite runs on either OS.
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 ---
-- stopApp
-- openLink: exp://127.0.0.1:8081
+# The express wallet the device really offers: Apple Pay on iOS, Google Pay on Android.
+- evalScript: "${output.walletButton = maestro.platform == 'android' ? 'express-google_pay' : 'express-apple_pay'}"
+- runFlow: _open-project.yaml
 - extendedWaitUntil:
     visible: "Total"
     timeout: 60000

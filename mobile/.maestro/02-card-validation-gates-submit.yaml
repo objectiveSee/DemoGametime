@@ -1,6 +1,6 @@
 # The Pay button stays disabled (and ignores taps) until the whole card form is valid.
 # Each case starts fresh: editing mid-field is cursor-position dependent in Maestro, so only append.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Card validation gates submit
 ---
 # Luhn failure blocks Pay, and tapping it does nothing.

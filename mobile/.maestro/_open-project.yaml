@@ -1,0 +1,15 @@
+# Shared subflow: kill Expo Go and cold-start it straight into the project via its dev URL.
+# On Android an exp:// intent sent at a cold Expo Go is sometimes dropped (it lands on the launcher
+# or Expo Go's home screen), so there Expo Go is booted to its home screen first.
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
+---
+- stopApp
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - launchApp
+      - extendedWaitUntil:
+          visible: "Development servers"
+          timeout: 30000
+- openLink: exp://127.0.0.1:8081

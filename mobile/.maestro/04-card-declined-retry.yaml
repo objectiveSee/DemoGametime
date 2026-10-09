@@ -1,6 +1,6 @@
 # Decline is a handled outcome: declined screen, then Try Again returns to the form with the
 # card still filled in, ready to edit.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Card declined, then retry with the form intact
 ---
 - runFlow: _launch.yaml

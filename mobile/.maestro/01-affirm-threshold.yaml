@@ -1,7 +1,7 @@
 # Affirm is offered only over $100. The quantity steps up and down a few times so the total's
 # rolling digits play on every reprice: 2 -> 3 -> 4 -> 3 -> 2 -> 1 -> 2. Each tap waits for its
 # new total, then a short beat lets the roll finish on camera before the next one.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Order loads, the total rolls, and Affirm tracks the $100 threshold
 ---
 - runFlow: _launch.yaml

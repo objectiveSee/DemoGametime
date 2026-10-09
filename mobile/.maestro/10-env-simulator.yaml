@@ -1,12 +1,12 @@
 # Environment simulator: the dev menu (gear in the header) forces platform / wallet state so every
-# eligibility branch is reviewable on one iOS simulator. Real detection is the default and Reset
+# eligibility branch is reviewable on one device. Real detection is the default and Reset
 # returns to it. Overrides are in-memory, so _launch's cold start always begins from detection.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Dev menu environment simulator
 ---
 - runFlow: _launch.yaml
 - assertVisible:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - assertNotVisible:
     id: dev-menu-active
 
@@ -55,7 +55,7 @@ name: Dev menu environment simulator
     id: express-affirm
 - assertVisible: "or pay with card"
 
-# Reset: real detection (Apple Pay on the iOS simulator), no override indicator.
+# Reset: real detection (the device's own wallet), no override indicator.
 - tapOn:
     id: dev-menu-button
 - tapOn:
@@ -63,11 +63,11 @@ name: Dev menu environment simulator
 - tapOn:
     id: dev-menu-close
 - assertVisible:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - assertNotVisible:
     id: dev-menu-active
 
-# Force express decline: a plain tap on Apple Pay now comes back declined; Try Again returns to idle.
+# Force express decline: a plain tap on the wallet now comes back declined; Try Again returns to idle.
 - tapOn:
     id: dev-menu-button
 - tapOn:
@@ -75,12 +75,12 @@ name: Dev menu environment simulator
 - tapOn:
     id: dev-menu-close
 - tapOn:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - extendedWaitUntil:
     visible: "Payment declined."
     timeout: 25000
 - tapOn:
     id: retry-button
 - assertVisible:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - runFlow: _hold.yaml

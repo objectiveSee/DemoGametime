@@ -1,5 +1,5 @@
 # Valid card -> success with a server-issued GT- confirmation code.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Card happy path
 ---
 - runFlow: _launch.yaml
@@ -24,7 +24,7 @@ name: Card happy path
 - assertNotVisible: "You're going."
 - assertVisible: "$135.90"
 - assertVisible:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - assertNotVisible:
     id: card-number-input
 - runFlow: _hold.yaml

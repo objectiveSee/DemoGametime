@@ -1,14 +1,14 @@
-# Express is actually express: one tap on Apple Pay buys the tickets. The wallet sheet's fake
+# Express is actually express: one tap on the wallet (Apple Pay / Google Pay) buys the tickets. The wallet sheet's fake
 # biometric auto-confirms — there is deliberately no second submit tap anywhere in this flow.
 # The sheet itself (~3.9 s on screen) is too transient to assert reliably (see the maestro
 # skill's transient-UI gotcha); flow 06 proves it exists by cancelling through it, so this flow
 # asserts the thing that matters: tap → confirmation, nothing in between.
-appId: host.exp.Exponent
-name: Express one-tap (Apple Pay)
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
+name: Express one-tap (Apple Pay / Google Pay)
 ---
 - runFlow: _launch.yaml
 - tapOn:
-    id: express-apple_pay
+    id: ${output.walletButton}
 - extendedWaitUntil:
     visible: "You're going."
     timeout: 25000

@@ -5,7 +5,7 @@
 # server parks the replay on the same in-flight charge and "Checking your payment…" stays up long
 # enough to assert. The flow then asserts the single charge against the server's charge counter;
 # server/server.log shows the same evidence: one pay_ id, with "(replayed)" on the second POST line.
-appId: host.exp.Exponent
+appId: "${maestro.platform == 'android' ? 'host.exp.exponent' : 'host.exp.Exponent'}"
 name: Kill and relaunch mid-charge, exactly one charge
 ---
 - runScript:
@@ -18,14 +18,13 @@ name: Kill and relaunch mid-charge, exactly one charge
       PHASE: before
 - runFlow: _launch.yaml
 - tapOn:
-    id: express-apple_pay
+    id: ${output.walletButton}
 # The sheet auto-authorizes; the snapshot is persisted just before the POST goes out.
 - extendedWaitUntil:
     visible: "Processing payment…"
     timeout: 15000
 # Kill Expo Go mid-request, then cold-start back into the app.
-- stopApp
-- openLink: exp://127.0.0.1:8081
+- runFlow: _open-project.yaml
 # Relaunch finds the snapshot: outcome unknown until the server answers the replay.
 - extendedWaitUntil:
     visible: "Checking your payment…"
