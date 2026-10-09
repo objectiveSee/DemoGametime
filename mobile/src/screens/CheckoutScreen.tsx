@@ -147,6 +147,16 @@ export function CheckoutScreen() {
     if (state.status === 'declined') haptics.warning();
   }, [state.status]);
 
+  // Fresh checkout after a purchase: default quantity, re-priced order, empty collapsed card form.
+  const startNewOrder = () => {
+    checkout.startNewOrder();
+    card.reset();
+    setCardExpanded(false);
+    setQuantity(DEFAULT_QUANTITY);
+    retryOrder();
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
+
   const onNumberChange = (raw: string) => {
     card.setField('number', raw);
     // Advance only past a good number; a bad one keeps focus so the fan can fix it.
@@ -169,7 +179,7 @@ export function CheckoutScreen() {
       contentContainerStyle={[styles.resultContent, { paddingBottom: insets.bottom + spacing.xl }]}
     >
       {state.status === 'succeeded' ? (
-        <ResultView variant="success" confirmationCode={state.receipt.confirmationCode} />
+        <ResultView variant="success" confirmationCode={state.receipt.confirmationCode} onNewOrder={startNewOrder} />
       ) : (
         <ResultView variant="declined" reason={state.failure.message} onRetry={checkout.retry} />
       )}

@@ -34,6 +34,7 @@ const E = {
   RELAUNCH_WITH_PENDING: { type: 'RELAUNCH_WITH_PENDING', method: 'google_pay' },
   RECOVERY_RESOLVED: { type: 'RECOVERY_RESOLVED', outcome: { kind: 'succeeded', receipt } },
   RETRY: { type: 'RETRY' },
+  NEW_ORDER: { type: 'NEW_ORDER' },
 } satisfies Record<string, CheckoutEvent>;
 
 type StateName = keyof typeof S;
@@ -58,6 +59,7 @@ const TRANSITIONS: [StateName, EventName, CheckoutState][] = [
   ['idle', 'RELAUNCH_WITH_PENDING', { status: 'checking', method: 'google_pay' }],
   ['checking', 'RECOVERY_RESOLVED', { status: 'succeeded', receipt }],
   ['declined', 'RETRY', { status: 'idle' }],
+  ['succeeded', 'NEW_ORDER', { status: 'idle' }],
 ];
 
 describe('checkoutReducer', () => {
@@ -121,6 +123,12 @@ describe('checkoutReducer', () => {
 
     it('card: submit -> validate -> process -> succeed', () => {
       expect(run([E.SUBMIT, E.VALIDATION_PASSED, E.RESULT_SUCCEEDED])).toEqual({ status: 'succeeded', receipt });
+    });
+
+    it('success -> new order: back to a fresh idle that can pay again', () => {
+      const fresh = run([E.SUBMIT, E.VALIDATION_PASSED, E.RESULT_SUCCEEDED, E.NEW_ORDER]);
+      expect(fresh).toBe(initialCheckoutState);
+      expect(checkoutReducer(fresh, E.EXPRESS_START)).toEqual({ status: 'authorizing', method: 'apple_pay' });
     });
 
     it('card: decline then retry then succeed', () => {

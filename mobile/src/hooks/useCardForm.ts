@@ -42,5 +42,11 @@ export function useCardForm() {
   const errorFor = (field: Field) => (touched[field] ? result.errors[field] : undefined);
   const isFieldValid = (field: Field) => !result.errors[field];
 
-  return { values, brand, valid: result.valid, setField, blur, touchAll, errorFor, isFieldValid };
+  /** Back to an empty, untouched form (a new order doesn't carry the last card over). */
+  const reset = () => {
+    setValues(EMPTY);
+    setTouched(NONE);
+  };
+
+  return { values, brand, valid: result.valid, setField, blur, touchAll, errorFor, isFieldValid, reset };
 }

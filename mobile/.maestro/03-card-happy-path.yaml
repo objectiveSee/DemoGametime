@@ -18,3 +18,12 @@ name: Card happy path
     visible: "You're going."
     timeout: 15000
 - assertVisible: "GT-[A-Z0-9]{6}"
+# Start a new order from the confirmation: back on a fresh checkout, card form collapsed.
+- tapOn:
+    id: new-order-button
+- assertNotVisible: "You're going."
+- assertVisible: "$135.90"
+- assertVisible:
+    id: express-apple_pay
+- assertNotVisible:
+    id: card-number-input

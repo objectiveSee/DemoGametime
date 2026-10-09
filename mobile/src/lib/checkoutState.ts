@@ -38,7 +38,9 @@ export type CheckoutEvent =
   | { type: 'RESULT_UNKNOWN' }
   | { type: 'RELAUNCH_WITH_PENDING'; method: PaymentMethod }
   | { type: 'RECOVERY_RESOLVED'; outcome: RecoveryOutcome }
-  | { type: 'RETRY' };
+  | { type: 'RETRY' }
+  /** "Start new order" from the confirmation: the purchase is done, checkout starts fresh. */
+  | { type: 'NEW_ORDER' };
 
 export const initialCheckoutState: CheckoutState = { status: 'idle' };
 
@@ -78,6 +80,8 @@ export function checkoutReducer(state: CheckoutState, event: CheckoutEvent): Che
     }
     case 'RETRY':
       return state.status === 'declined' ? { status: 'idle' } : state;
+    case 'NEW_ORDER':
+      return state.status === 'succeeded' ? initialCheckoutState : state;
   }
 }
 

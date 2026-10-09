@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { haptics } from '../lib/haptics';
-import { colors, radii, spacing, type } from '../theme';
+import { colors, radii, spacing, touchTarget, type } from '../theme';
 import { ChevronBurst } from './ChevronBurst';
 import { PayButton } from './PayButton';
 
@@ -15,10 +15,11 @@ const TEXT_AT = 260;
 const TEXT_STAGGER = 90;
 
 type Props =
-  { variant: 'success'; confirmationCode?: string } | { variant: 'declined'; reason?: string; onRetry?: () => void };
+  | { variant: 'success'; confirmationCode?: string; onNewOrder?: () => void }
+  | { variant: 'declined'; reason?: string; onRetry?: () => void };
 
 export function ResultView(props: Props) {
-  if (props.variant === 'success') return <Success confirmationCode={props.confirmationCode} />;
+  if (props.variant === 'success') return <Success confirmationCode={props.confirmationCode} onNewOrder={props.onNewOrder} />;
   return (
     <View testID="result-declined" style={styles.card}>
       <View style={[styles.iconWrap, styles.icon, styles.iconDeclined]}>
@@ -33,11 +34,11 @@ export function ResultView(props: Props) {
   );
 }
 
-function Success({ confirmationCode }: { confirmationCode?: string }) {
+function Success({ confirmationCode, onNewOrder }: { confirmationCode?: string; onNewOrder?: () => void }) {
   const reduced = useReducedMotion();
   // One value per element; each starts at its final state when motion is reduced.
   const [pop] = useState(() => new Animated.Value(reduced ? 1 : 0));
-  const [rise] = useState(() => [0, 1, 2].map(() => new Animated.Value(reduced ? 1 : 0)));
+  const [rise] = useState(() => [0, 1, 2, 3].map(() => new Animated.Value(reduced ? 1 : 0)));
 
   useEffect(() => {
     if (reduced) {
@@ -98,6 +99,20 @@ function Success({ confirmationCode }: { confirmationCode?: string }) {
           {confirmationCode ?? 'GT-7K4QX2'}
         </Text>
       </Animated.View>
+      {onNewOrder ? (
+        // A quiet text-level action: it's there when the fan is done, never louder than the moment.
+        <Animated.View style={riseStyle(rise[3], 8)}>
+          <Pressable
+            testID="new-order-button"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onNewOrder}
+            style={({ pressed }) => [styles.newOrder, pressed && styles.newOrderPressed]}
+          >
+            <Text style={styles.newOrderLabel}>Start New Order</Text>
+          </Pressable>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
@@ -136,4 +151,7 @@ const styles = StyleSheet.create({
   codeLabel: { ...type.micro, color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 1 },
   code: { fontSize: 22, fontWeight: '700', color: colors.green400, letterSpacing: 2, marginTop: spacing.xs },
   retry: { alignSelf: 'stretch', marginTop: spacing.xl },
+  newOrder: { marginTop: spacing.lg, minHeight: touchTarget, paddingHorizontal: spacing.lg, justifyContent: 'center' },
+  newOrderPressed: { opacity: 0.6 },
+  newOrderLabel: { ...type.body, fontWeight: '600', color: colors.green400 },
 });

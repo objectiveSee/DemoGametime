@@ -180,8 +180,24 @@ export function useCheckout() {
   );
 
   const retry = useCallback(() => dispatch({ type: 'RETRY' }), []);
+  // Only legal from the confirmation. The pending-payment snapshot is already gone by then:
+  // every definitive answer clears it before the success is dispatched.
+  const startNewOrder = useCallback(() => {
+    setNotice(null);
+    dispatch({ type: 'NEW_ORDER' });
+  }, []);
 
-  return { state, busy: isBusy(state), notice, payWithCard, startExpress, cancelExpress, completeExpress, retry };
+  return {
+    state,
+    busy: isBusy(state),
+    notice,
+    payWithCard,
+    startExpress,
+    cancelExpress,
+    completeExpress,
+    retry,
+    startNewOrder,
+  };
 }
 
 const GENERIC_FAILURE = "We couldn't process this payment.";
