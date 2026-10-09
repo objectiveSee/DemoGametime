@@ -18,7 +18,7 @@ import { Spinner } from '../components/Spinner';
 import { DevMenuButton } from '../dev/DevMenu';
 import { useCardForm } from '../hooks/useCardForm';
 import { useCheckout } from '../hooks/useCheckout';
-import { useDevSettings, useEnvironment } from '../hooks/useEnvironment';
+import { useDevSettings, useEnvironment, useWalletsChecked } from '../hooks/useEnvironment';
 import { useOrder } from '../hooks/useOrder';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { cvcLength, isCardNumberComplete, validateCardNumber, type CardBrand } from '../lib/cardValidation';
@@ -44,6 +44,7 @@ export function CheckoutScreen() {
   const [quantity, setQuantity] = useState(DEFAULT_QUANTITY);
   const { order, current, error, retry: retryOrder } = useOrder(quantity);
   const liveEnvironment = useEnvironment();
+  const walletsChecked = useWalletsChecked();
   const { forceExpressDecline } = useDevSettings();
   const card = useCardForm();
   const checkout = useCheckout();
@@ -220,7 +221,9 @@ export function CheckoutScreen() {
   ) : null;
 
   let body;
-  if (!order) {
+  // The method list also waits for the wallet checks: a wallet button arriving later would push
+  // Affirm and card down under the fan's finger.
+  if (!order || !walletsChecked) {
     body = (
       <View style={[styles.centered, { paddingBottom: insets.bottom }]}>
         {error ? <OrderError message={error} onRetry={retryOrder} /> : <Spinner testID="order-loading" />}

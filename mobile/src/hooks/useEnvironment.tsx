@@ -3,25 +3,15 @@
 //
 // Dev settings live in memory only and reset on relaunch. Deliberate: a persisted override would
 // leak into the kill-relaunch recovery demo and make a fresh launch lie about the device.
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
 import { applyOverrides, DEFAULT_OVERRIDES, type Environment, type EnvironmentOverrides } from '../lib/environment';
+import { checkWallets, WALLETS_PENDING, type WalletCapability } from '../lib/walletCapability';
 
 export type { Environment } from '../lib/environment';
 
-/**
- * Real detection. Platform is real; wallet capability is a stub standing in for
- * PKPaymentAuthorizationController.canMakePayments(usingNetworks:) / Google Pay isReadyToPay,
- * which aren't reachable from Expo Go. Eligibility pairs each wallet with its platform.
- */
-export function detectEnvironment(): Environment {
-  return {
-    platform: Platform.OS === 'android' ? 'android' : 'ios',
-    applePayCapable: true,
-    googlePaySetUp: true,
-  };
-}
+const PLATFORM = Platform.OS === 'android' ? 'android' : 'ios';
 
 type DevSettings = {
   detected: Environment;
@@ -37,9 +27,21 @@ type DevSettings = {
 
 const DevSettingsContext = createContext<DevSettings | null>(null);
 const EnvironmentContext = createContext<Environment | null>(null);
+const WalletsCheckedContext = createContext(false);
 
 export function EnvironmentProvider({ children }: { children: ReactNode }) {
-  const [detected] = useState(detectEnvironment);
+  // Real detection: the platform is known now; the wallet checks (lib/walletCapability) answer async.
+  const [wallets, setWallets] = useState<WalletCapability | null>(null);
+  useEffect(() => {
+    let live = true;
+    checkWallets().then((result) => {
+      if (live) setWallets(result);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  const detected = useMemo<Environment>(() => ({ platform: PLATFORM, ...(wallets ?? WALLETS_PENDING) }), [wallets]);
   const [overrides, setOverridesState] = useState(DEFAULT_OVERRIDES);
   const [forceExpressDecline, setForceExpressDecline] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -65,7 +67,9 @@ export function EnvironmentProvider({ children }: { children: ReactNode }) {
 
   return (
     <DevSettingsContext.Provider value={settings}>
-      <EnvironmentContext.Provider value={environment}>{children}</EnvironmentContext.Provider>
+      <EnvironmentContext.Provider value={environment}>
+        <WalletsCheckedContext.Provider value={wallets !== null}>{children}</WalletsCheckedContext.Provider>
+      </EnvironmentContext.Provider>
     </DevSettingsContext.Provider>
   );
 }
@@ -76,6 +80,9 @@ export function useEnvironment(): Environment {
   if (!environment) throw new Error('useEnvironment must be used inside <EnvironmentProvider>');
   return environment;
 }
+
+/** The wallet capability checks have answered. Until then no wallet is eligible. */
+export const useWalletsChecked = () => useContext(WalletsCheckedContext);
 
 export function useDevSettings(): DevSettings {
   const settings = useContext(DevSettingsContext);
