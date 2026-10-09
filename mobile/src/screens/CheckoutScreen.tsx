@@ -2,7 +2,7 @@ import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardField } from '../components/CardFields';
@@ -73,11 +73,28 @@ export function CheckoutScreen() {
 
   // Keep the Pay button above the keyboard while the card form is being filled.
   useEffect(() => {
+    if (Platform.OS === 'android') return;
     const sub = Keyboard.addListener('keyboardDidShow', () => {
       if (cardExpanded) scrollRef.current?.scrollToEnd({ animated: true });
     });
     return () => sub.remove();
   }, [cardExpanded]);
+
+  // Android: automaticallyAdjustKeyboardInsets is iOS-only, and edge-to-edge doesn't resize the
+  // window for the keyboard, so pad the scroll content by the keyboard's height instead.
+  const [androidKeyboardHeight, setAndroidKeyboardHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const show = Keyboard.addListener('keyboardDidShow', (e) => setAndroidKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setAndroidKeyboardHeight(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  useEffect(() => {
+    if (androidKeyboardHeight > 0 && cardExpanded) scrollRef.current?.scrollToEnd({ animated: true });
+  }, [androidKeyboardHeight, cardExpanded]);
 
   const canPay = card.valid && current !== null && !busy;
 
@@ -205,7 +222,7 @@ export function CheckoutScreen() {
         testID="checkout-scroll"
         accessibilityElementsHidden={showingResult}
         importantForAccessibility={showingResult ? 'no-hide-descendants' : 'auto'}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl + androidKeyboardHeight }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         automaticallyAdjustKeyboardInsets
