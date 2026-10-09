@@ -57,4 +57,11 @@ describe('parseAffirmReturn', () => {
     expect(parseAffirmReturn('exp://host/--/affirm?token=')).toEqual({ kind: 'cancelled' });
     expect(parseAffirmReturn('exp://host/--/affirm')).toEqual({ kind: 'cancelled' });
   });
+
+  // A throw here would escape the Affirm flow and strand checkout in 'authorizing'.
+  it('treats malformed percent-encoding as cancelled instead of throwing', () => {
+    for (const bad of ['tok_%zz', 'tok_%', 'tok_%E0%A4%A', '%']) {
+      expect(parseAffirmReturn(`exp://host/--/affirm?token=${bad}`)).toEqual({ kind: 'cancelled' });
+    }
+  });
 });

@@ -57,7 +57,12 @@ export function parseAffirmReturn(url: string): AffirmReturn {
   if (!query) return { kind: 'cancelled' };
   for (const pair of query.split('&')) {
     const [key, value = ''] = pair.split('=');
-    if (key === 'token' && value) return { kind: 'approved', token: decodeURIComponent(value) };
+    if (key !== 'token' || !value) continue;
+    try {
+      return { kind: 'approved', token: decodeURIComponent(value) };
+    } catch {
+      return { kind: 'cancelled' }; // malformed percent-encoding (URIError)
+    }
   }
   return { kind: 'cancelled' };
 }
