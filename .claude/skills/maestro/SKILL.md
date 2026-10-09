@@ -91,3 +91,6 @@ appId: host.exp.Exponent
 - **Backgrounding without killing:** `launchApp` with `stopApp: false` foregrounds a running app via activate. Launching `com.apple.Preferences` first is an easy way to background Expo Go mid-flow, then re-activate and assert the flow resumed.
 - **`runScript` + `http.post` works for test hooks** (e.g. telling the mock server to slow down): env vars from the flow arrive as plain globals, `http.post(url, { body, headers })`. Inline `evalScript` with JSON braces trips the YAML parser — use a script file.
 - `query_docs` can 404 (hosted docs endpoint down); fall back to `cheat_sheet` and what's written here.
+- **`run_flow` can return a bare `Internal error`** (seen on the first call of a session, a flow with a `runFlow:` subflow) while the app is fine. Screenshot to check, then retry — the same steps passed on the next call.
+- **RN `Switch` taps fine by `id`** (its `testID`), and a native `Modal` with `presentationStyle="pageSheet"` is fully visible to the hierarchy. Assert the toggle's *effect* on the screen underneath rather than the switch's on/off value.
+- `config.yaml` `flows:` globs are literal: `"0*.yaml"` silently skips a `10-…yaml`. Add a pattern per leading digit when the suite grows past 09.
