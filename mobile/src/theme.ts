@@ -18,6 +18,8 @@ export const colors = {
   error: '#FF5A5F',
   scrim: 'rgba(0,0,0,0.6)',
   black: '#000000',
+  // Affirm brand blue (~), for its express button only.
+  affirm: '#4A4AF4',
 } as const;
 
 export const spacing = {

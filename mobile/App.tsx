@@ -38,16 +38,29 @@ export default function App() {
           <QuantityStepper quantity={1} label="At minimum" />
         </Section>
 
-        <Section title="Payment methods · iOS, wallet provisioned">
-          <PaymentMethodList selected="apple_pay" hidden={['google_pay']} />
+        <Section title="Payment · iOS, wallet provisioned, over $100">
+          <PaymentMethodList express={['apple_pay', 'affirm']} />
         </Section>
 
-        <Section title="Payment methods · total under $100, no wallet">
+        <Section title="Payment · Android, card selected">
           <PaymentMethodList
-            selected="card"
-            hidden={['apple_pay', 'google_pay']}
-            disabled={{ affirm: 'Available on orders over $100' }}
+            express={['google_pay']}
+            cardExpanded
+            cardForm={
+              <>
+                <CardNumberInput state="valid" />
+                <View style={styles.inline}>
+                  <ExpiryInput state="valid" />
+                  <CvvInput state="valid" />
+                </View>
+                <PayButton />
+              </>
+            }
           />
+        </Section>
+
+        <Section title="Payment · no wallet, under $100">
+          <PaymentMethodList express={['affirm']} disabled={{ affirm: 'Available on orders over $100' }} />
         </Section>
 
         {FIELD_STATES.map((s) => (
@@ -60,16 +73,22 @@ export default function App() {
           </Section>
         ))}
 
-        <Section title="Pay button">
+        <Section title="Card pay button">
           <PayButton />
-          <PayButton variant="applePay" />
-          <PayButton variant="disabled" />
+          <PayButton disabled />
         </Section>
 
-        <Section title="Processing overlay">
+        <Section title="Overlay · processing">
           <View style={styles.overlayDemo}>
             <OrderSummaryCard />
             <ProcessingOverlay />
+          </View>
+        </Section>
+
+        <Section title="Overlay · checking (relaunched mid-payment)">
+          <View style={styles.overlayDemo}>
+            <OrderSummaryCard />
+            <ProcessingOverlay variant="checking" />
           </View>
         </Section>
 
