@@ -202,6 +202,12 @@ async function route(req, url) {
     return [200, { ok: true, delayMs: delayOverrideMs }];
   }
 
+  // Test hook: how many distinct charges have been started (one per idempotency key, in flight or
+  // settled). Replays don't count. Maestro reads it before and after a flow to prove one charge.
+  if (req.method === 'GET' && path === '/debug/charges') {
+    return [200, { count: paymentsByKey.size }];
+  }
+
   const match = req.method === 'GET' && path.match(/^\/payments\/([\w-]+)$/);
   if (match) {
     const payment = paymentsById.get(match[1]);

@@ -30,6 +30,7 @@ All money is integer cents. Errors are `{"error":{"code","message?"}}`.
 | `GET /payments/:id` | 200 `{payment}` or 404 `not_found` |
 | `GET /affirm/checkout` | HTML stand-in for Affirm's hosted checkout. Query: `amount_cents`, `order_id`, `return_to` (deep link the page redirects back to with `?token=tok_affirm_…` on approve or `?cancelled=1`), `decline=1` makes the approve token carry the `tok_declined` prefix |
 | `POST /debug/delay` | Test hook: `{"ms":20000}` overrides the default processing delay for all payments until `{"ms":null}` resets it. Lets Maestro flows kill the app mid-charge deterministically. An `x-mock-delay` header still wins over the override |
+| `GET /debug/charges` | Test hook: `{count}` = distinct charges started (one per idempotency key, in flight or settled; replays don't count). Flow 07 reads it before and after to assert exactly one charge |
 
 ## Magic triggers
 

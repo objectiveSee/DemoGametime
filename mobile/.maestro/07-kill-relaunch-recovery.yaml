@@ -3,8 +3,8 @@
 # charging again. The mock server's delay override makes the timing deterministic: 20 s is long
 # enough that the relaunch's replay arrives while the original charge is still processing, so the
 # server parks the replay on the same in-flight charge and "Checking your payment…" stays up long
-# enough to assert. Evidence lives in server/server.log: one pay_ id, with "(replayed)" on the
-# second POST line.
+# enough to assert. The flow then asserts the single charge against the server's charge counter;
+# server/server.log shows the same evidence: one pay_ id, with "(replayed)" on the second POST line.
 appId: host.exp.Exponent
 name: Kill and relaunch mid-charge, exactly one charge
 ---
@@ -12,6 +12,10 @@ name: Kill and relaunch mid-charge, exactly one charge
     file: scripts/set-delay.js
     env:
       DELAY_MS: "20000"
+- runScript:
+    file: scripts/count-charges.js
+    env:
+      PHASE: before
 - runFlow: _launch.yaml
 - tapOn:
     id: express-apple_pay
@@ -37,4 +41,9 @@ name: Kill and relaunch mid-charge, exactly one charge
     file: scripts/set-delay.js
     env:
       DELAY_MS: "null"
+# Exactly one charge, asserted against the server: one new idempotency key since the start.
+- runScript:
+    file: scripts/count-charges.js
+    env:
+      PHASE: after
 - runFlow: _hold.yaml
