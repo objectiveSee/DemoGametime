@@ -6,6 +6,13 @@ Development targets the **iOS simulator** (easiest to drive and iterate on). And
 
 Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-home PDF + REQUIREMENTS.md)
 
+## How this project is built
+
+- A top-level orchestrator agent plans the work and dispatches focused subagents: requirements analysis, mock-server build, component build, logic + specs, review.
+- Each subagent commits its own completed sub-task straight to `main`.
+- Maestro on the iOS simulator verifies UI work in the loop; spec tests cover logic.
+- Adversarial review agents audit the result against the take-home rubric, and their findings go back out as new sub-tasks.
+
 ## Pragmatics
 
 - Stick with out-of-the-box defaults: the most reasonable system font, no custom font installs.
