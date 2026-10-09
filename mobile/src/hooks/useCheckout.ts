@@ -5,6 +5,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import { toCardPayload, validateCardForm, type CardForm } from '../lib/cardValidation';
 import { checkoutReducer, initialCheckoutState, isBusy, type Failure } from '../lib/checkoutState';
+import type { ExpressMethod } from '../lib/expressAuth';
 import {
   ApiError,
   isOutcomeUnknown,
@@ -12,6 +13,7 @@ import {
   postPayment,
   toReceipt,
   type Order,
+  type PaymentCredentials,
   type PaymentResponse,
 } from '../lib/paymentsApi';
 import {
@@ -34,6 +36,12 @@ export function useCheckout() {
   const [notice, setNotice] = useState<string | null>(null);
   // The reducer already ignores a second SUBMIT, but the side effects below must not run twice.
   const inFlight = useRef(false);
+  // Mirrors `state` for callbacks that outlive a render (e.g. the express sheet's authorize timer
+  // racing a cancel): the reducer no-ops the stray event, and this ref gates its side effects.
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   /** Replays the snapshot until the server gives a definitive answer. Stays in "checking" meanwhile. */
   const resolveUnknown = useCallback(async (snapshot: PaymentSnapshot) => {
@@ -58,6 +66,38 @@ export function useCheckout() {
       resolveUnknown(snapshot).finally(() => (inFlight.current = false));
     });
   }, [resolveUnknown]);
+
+  /**
+   * Shared tail of every attempt: POST the (already persisted) snapshot and settle the outcome.
+   * Expects the reducer to be in `processing` already.
+   */
+  const runAttempt = useCallback(
+    async (snapshot: PaymentSnapshot, credentials: PaymentCredentials) => {
+      let response: PaymentResponse;
+      try {
+        response = await postPayment(attemptFromSnapshot(snapshot).attempt, credentials);
+      } catch (err) {
+        if (isOutcomeUnknown(err)) {
+          dispatch({ type: 'RESULT_UNKNOWN' });
+          await resolveUnknown(snapshot);
+        } else {
+          // A 4xx is rejected before any charge is made.
+          await clearSnapshot();
+          dispatch({ type: 'RESULT_DECLINED', failure: toFailure(err) });
+        }
+        return;
+      }
+
+      await clearSnapshot();
+      const { payment } = response;
+      dispatch(
+        payment.status === 'succeeded'
+          ? { type: 'RESULT_SUCCEEDED', receipt: toReceipt(payment) }
+          : { type: 'RESULT_DECLINED', failure: { code: payment.failureCode, message: payment.failureMessage } },
+      );
+    },
+    [resolveUnknown],
+  );
 
   const payWithCard = useCallback(
     async (order: Order, form: CardForm) => {
@@ -86,38 +126,62 @@ export function useCheckout() {
           return;
         }
 
-        let response: PaymentResponse;
-        try {
-          response = await postPayment(attemptFromSnapshot(snapshot).attempt, { card: toCardPayload(form) });
-        } catch (err) {
-          if (isOutcomeUnknown(err)) {
-            dispatch({ type: 'RESULT_UNKNOWN' });
-            await resolveUnknown(snapshot);
-          } else {
-            // A 4xx is rejected before any charge is made.
-            await clearSnapshot();
-            dispatch({ type: 'RESULT_DECLINED', failure: toFailure(err) });
-          }
-          return;
-        }
-
-        await clearSnapshot();
-        const { payment } = response;
-        dispatch(
-          payment.status === 'succeeded'
-            ? { type: 'RESULT_SUCCEEDED', receipt: toReceipt(payment) }
-            : { type: 'RESULT_DECLINED', failure: { code: payment.failureCode, message: payment.failureMessage } },
-        );
+        await runAttempt(snapshot, { card: toCardPayload(form) });
       } finally {
         inFlight.current = false;
       }
     },
-    [resolveUnknown],
+    [runAttempt],
+  );
+
+  /** Tap on an express button: brings up that method's authorization (sheet / redirect). */
+  const startExpress = useCallback((method: ExpressMethod) => {
+    if (inFlight.current) return;
+    setNotice(null);
+    dispatch({ type: 'EXPRESS_START', method });
+  }, []);
+
+  /** The fan backed out of the sheet / redirect. Nothing was sent; back to idle, no error UI. */
+  const cancelExpress = useCallback(() => dispatch({ type: 'SHEET_CANCELLED' }), []);
+
+  /**
+   * The method authorized and handed back a token: persist the attempt (token included, so a
+   * relaunch can replay it verbatim), then charge. One interaction end-to-end — nothing here
+   * waits for another tap.
+   */
+  const completeExpress = useCallback(
+    async (order: Order, method: ExpressMethod, token: string) => {
+      // A cancel may have already landed (reducer would no-op SHEET_AUTHORIZED); skip the charge too.
+      if (stateRef.current.status !== 'authorizing' || inFlight.current) return;
+      inFlight.current = true;
+      try {
+        dispatch({ type: 'SHEET_AUTHORIZED' });
+        const snapshot: PaymentSnapshot = {
+          idempotencyKey: newIdempotencyKey(),
+          orderId: order.id,
+          quantity: order.quantity,
+          amountCents: order.pricing.totalCents,
+          method,
+          token,
+        };
+        try {
+          await persistSnapshot(snapshot);
+        } catch {
+          dispatch({ type: 'RESULT_DECLINED', failure: { code: 'storage_error', message: GENERIC_FAILURE } });
+          return;
+        }
+
+        await runAttempt(snapshot, { token });
+      } finally {
+        inFlight.current = false;
+      }
+    },
+    [runAttempt],
   );
 
   const retry = useCallback(() => dispatch({ type: 'RETRY' }), []);
 
-  return { state, busy: isBusy(state), notice, payWithCard, retry };
+  return { state, busy: isBusy(state), notice, payWithCard, startExpress, cancelExpress, completeExpress, retry };
 }
 
 const GENERIC_FAILURE = "We couldn't process this payment.";

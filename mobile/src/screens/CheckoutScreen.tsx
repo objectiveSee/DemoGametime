@@ -1,9 +1,13 @@
+import * as Haptics from 'expo-haptics';
+import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardField } from '../components/CardFields';
+import { ExpressSheet } from '../components/ExpressSheet';
 import { OrderSummaryCard } from '../components/OrderSummaryCard';
 import { PayButton } from '../components/PayButton';
 import { PaymentMethodList, type ExpressMethodId } from '../components/PaymentMethodRow';
@@ -16,7 +20,9 @@ import { useEnvironment } from '../hooks/useEnvironment';
 import { useOrder } from '../hooks/useOrder';
 import { cvcLength, isCardNumberComplete, validateCardNumber, type CardBrand } from '../lib/cardValidation';
 import { eligibleMethods, isExpressMethod } from '../lib/eligibility';
+import { affirmCheckoutUrl, expressAuthToken, parseAffirmReturn } from '../lib/expressAuth';
 import { formatCents, summarizeOrder } from '../lib/orderDisplay';
+import { API_BASE_URL, type Order } from '../lib/paymentsApi';
 import { colors, spacing, type } from '../theme';
 
 const DEFAULT_QUANTITY = 2;
@@ -67,6 +73,55 @@ export function CheckoutScreen() {
     Keyboard.dismiss();
     checkout.payWithCard(current, card.values);
   };
+
+  // Whether the in-progress express authorization should come back declined (hidden long-press hook).
+  const simulateDecline = useRef(false);
+
+  // The Affirm stub is redirect-shaped: a real browser opens over the app (which loses focus, like
+  // a real Affirm handoff), and the hosted page deep-links back with a token or a cancel. The
+  // ephemeral session skips iOS's sign-in consent alert; the await spans the whole round trip,
+  // including any backgrounding while the browser is up.
+  const startAffirm = async (order: Order, declined: boolean) => {
+    checkout.startExpress('affirm');
+    const returnUrl = Linking.createURL('affirm');
+    const url = affirmCheckoutUrl({
+      baseUrl: API_BASE_URL,
+      returnUrl,
+      amountCents: order.pricing.totalCents,
+      orderId: order.id,
+      simulateDecline: declined,
+    });
+    let result: WebBrowser.WebBrowserAuthSessionResult;
+    try {
+      result = await WebBrowser.openAuthSessionAsync(url, returnUrl, { preferEphemeralSession: true });
+    } catch {
+      checkout.cancelExpress();
+      return;
+    }
+    const outcome = result.type === 'success' ? parseAffirmReturn(result.url) : { kind: 'cancelled' as const };
+    if (outcome.kind === 'approved') checkout.completeExpress(order, 'affirm', outcome.token);
+    else checkout.cancelExpress();
+  };
+
+  const onExpressPress = (method: ExpressMethodId, declined = false) => {
+    if (!current || busy) return;
+    Keyboard.dismiss();
+    simulateDecline.current = declined;
+    if (method === 'affirm') startAffirm(current, declined);
+    else checkout.startExpress(method); // the wallet sheet below takes it from here
+  };
+
+  // The wallet sheet drives apple_pay / google_pay authorization; affirm authorizes in the browser.
+  const walletSheet =
+    state.status === 'authorizing' && (state.method === 'apple_pay' || state.method === 'google_pay') && current
+      ? { method: state.method, order: current }
+      : null;
+
+  // Confirmation / decline haptic, once per settled outcome.
+  useEffect(() => {
+    if (state.status === 'succeeded') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    else if (state.status === 'declined') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  }, [state.status]);
 
   const onNumberChange = (raw: string) => {
     card.setField('number', raw);
@@ -136,6 +191,8 @@ export function CheckoutScreen() {
         <PaymentMethodList
           express={express}
           cardExpanded={cardExpanded}
+          onExpressPress={onExpressPress}
+          onExpressLongPress={(method) => onExpressPress(method, true)}
           onCardPress={() => !busy && setCardExpanded((open) => !open)}
           cardForm={
             <>
@@ -215,6 +272,22 @@ export function CheckoutScreen() {
       </View>
       {state.status === 'processing' || state.status === 'validating' ? <ProcessingOverlay /> : null}
       {state.status === 'checking' ? <ProcessingOverlay variant="checking" /> : null}
+      {walletSheet ? (
+        <ExpressSheet
+          method={walletSheet.method}
+          eventTitle={walletSheet.order.event.title}
+          quantity={walletSheet.order.quantity}
+          totalLabel={formatCents(walletSheet.order.pricing.totalCents)}
+          onCancel={checkout.cancelExpress}
+          onAuthorized={() =>
+            checkout.completeExpress(
+              walletSheet.order,
+              walletSheet.method,
+              expressAuthToken(walletSheet.method, { declined: simulateDecline.current }),
+            )
+          }
+        />
+      ) : null}
     </View>
   );
 }

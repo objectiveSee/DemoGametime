@@ -5,6 +5,9 @@ const crypto = require('node:crypto');
 
 const PORT = Number(process.env.PORT) || 4000;
 const DEFAULT_DELAY_MS = 1500;
+// Test hook: POST /debug/delay sets this so Maestro flows get a deterministic processing window
+// without the app sending an x-mock-delay header. The header still wins when present.
+let delayOverrideMs = null;
 
 const UNIT_PRICE_CENTS = 5800;
 const PROCESSING_FEE_CENTS = 250;
@@ -106,6 +109,42 @@ function readJson(req) {
 
 const errorBody = (code, message) => ({ error: { code, ...(message && { message }) } });
 
+const formatCents = (cents) => `$${(cents / 100).toFixed(2)}`;
+
+function affirmPage(params) {
+  const amount = Number(params.get('amount_cents'));
+  const amountLabel = Number.isFinite(amount) ? formatCents(amount) : 'your order';
+  const returnTo = params.get('return_to') || '';
+  const token = (params.get('decline') === '1' ? 'tok_declined_affirm_' : 'tok_affirm_') + randomId(10);
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Affirm (Demo)</title>
+<style>
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: #0E0F11; color: #fff;
+         display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+  .card { width: min(360px, 88vw); background: #1A1B1E; border: 1px solid #2C2D31; border-radius: 16px;
+          padding: 28px 24px; text-align: center; }
+  h1 { font-size: 26px; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+  h1 span { color: #4A4AF4; }
+  p { color: #C9CACD; font-size: 15px; line-height: 1.5; margin: 14px 0 24px; }
+  button { display: block; width: 100%; border: 0; border-radius: 8px; padding: 15px; font-size: 16px;
+           font-weight: 600; cursor: pointer; }
+  #approve { background: #4A4AF4; color: #fff; }
+  #cancel { background: none; color: #8E8F94; margin-top: 10px; }
+</style></head>
+<body><div class="card">
+  <h1>a<span>f</span>firm <small style="font-size:13px;color:#8E8F94;font-weight:400">(demo)</small></h1>
+  <p>Pay ${amountLabel} over time.<br>4 interest-free payments — demo only, nothing is real.</p>
+  <button id="approve">Approve plan</button>
+  <button id="cancel">Cancel</button>
+</div>
+<script>
+  const back = (query) => { location.href = ${JSON.stringify(returnTo)} + (${JSON.stringify(returnTo)}.includes('?') ? '&' : '?') + query; };
+  document.getElementById('approve').onclick = () => back('token=' + encodeURIComponent(${JSON.stringify(token)}));
+  document.getElementById('cancel').onclick = () => back('cancelled=1');
+</script></body></html>`;
+}
+
 async function route(req, url) {
   const path = url.pathname.replace(/\/+$/, '') || '/';
 
@@ -138,11 +177,26 @@ async function route(req, url) {
       return [409, errorBody('amount_mismatch', `expected ${priceOrder(quantity).totalCents} cents`)];
     }
 
-    const override = Number(req.headers['x-mock-delay']);
-    const delayMs = Number.isFinite(override) && override >= 0 ? override : DEFAULT_DELAY_MS;
+    const header = Number(req.headers['x-mock-delay']);
+    const delayMs =
+      Number.isFinite(header) && header >= 0 ? header : (delayOverrideMs ?? DEFAULT_DELAY_MS);
     const pending = createPayment(body, delayMs);
     paymentsByKey.set(key, pending);
     return [201, { payment: await pending }];
+  }
+
+  // Stand-in for Affirm's hosted checkout: the app opens this in a browser (a real redirect out of
+  // the app), the fan approves or cancels, and the page deep-links back with the outcome. Approve
+  // hands back a one-time token; `decline=1` makes that token carry the declined magic prefix.
+  if (req.method === 'GET' && path === '/affirm/checkout') {
+    return [200, affirmPage(url.searchParams), 'text/html'];
+  }
+
+  if (req.method === 'POST' && path === '/debug/delay') {
+    let body;
+    try { body = await readJson(req); } catch { return [400, errorBody('invalid_json')]; }
+    delayOverrideMs = Number.isFinite(body.ms) && body.ms >= 0 ? body.ms : null;
+    return [200, { ok: true, delayMs: delayOverrideMs }];
   }
 
   const match = req.method === 'GET' && path.match(/^\/payments\/([\w-]+)$/);
@@ -158,16 +212,16 @@ http
   .createServer(async (req, res) => {
     const started = Date.now();
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-    let status, body;
+    let status, body, contentType;
     try {
-      [status, body] = await route(req, url);
+      [status, body, contentType = 'application/json'] = await route(req, url);
     } catch (err) {
       console.error(err);
-      [status, body] = [500, errorBody('internal_error')];
+      [status, body, contentType] = [500, errorBody('internal_error'), 'application/json'];
     }
-    res.writeHead(status, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(body));
-    const p = body.payment;
+    res.writeHead(status, { 'Content-Type': contentType });
+    res.end(contentType === 'application/json' ? JSON.stringify(body) : body);
+    const p = contentType === 'application/json' ? body.payment : undefined;
     const detail = p ? ` ${p.id} ${p.status}${body.replayed ? ' (replayed)' : ''}` : '';
     console.log(`${new Date().toISOString()} ${req.method} ${req.url} -> ${status}${detail} ${Date.now() - started}ms`);
   })

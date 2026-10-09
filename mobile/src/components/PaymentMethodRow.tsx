@@ -12,9 +12,15 @@ const EXPRESS: Record<ExpressMethodId, { label: string; caption?: string; fill: 
   affirm: { label: 'Pay over time with affirm', caption: 'From $23/mo · Subject to eligibility', fill: colors.affirm },
 };
 
-type ExpressProps = { method: ExpressMethodId; disabledHint?: string; onPress?: (method: ExpressMethodId) => void };
+type ExpressProps = {
+  method: ExpressMethodId;
+  disabledHint?: string;
+  onPress?: (method: ExpressMethodId) => void;
+  /** Hidden test hook: run the same express flow with a declined authorization. */
+  onLongPress?: (method: ExpressMethodId) => void;
+};
 
-export function ExpressPayButton({ method, disabledHint, onPress }: ExpressProps) {
+export function ExpressPayButton({ method, disabledHint, onPress, onLongPress }: ExpressProps) {
   const { label, caption, fill } = EXPRESS[method];
   const disabled = !!disabledHint;
   return (
@@ -24,6 +30,7 @@ export function ExpressPayButton({ method, disabledHint, onPress }: ExpressProps
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={() => onPress?.(method)}
+        onLongPress={onLongPress && (() => onLongPress(method))}
         style={({ pressed }) => [
           styles.express,
           { backgroundColor: fill },
@@ -76,6 +83,7 @@ type ListProps = {
   cardExpanded?: boolean;
   cardForm?: ReactNode;
   onExpressPress?: (method: ExpressMethodId) => void;
+  onExpressLongPress?: (method: ExpressMethodId) => void;
   onCardPress?: () => void;
 };
 
@@ -85,12 +93,19 @@ export function PaymentMethodList({
   cardExpanded = false,
   cardForm,
   onExpressPress,
+  onExpressLongPress,
   onCardPress,
 }: ListProps) {
   return (
     <View testID="payment-method-list" style={styles.list}>
       {express.map((m) => (
-        <ExpressPayButton key={m} method={m} disabledHint={disabled[m]} onPress={onExpressPress} />
+        <ExpressPayButton
+          key={m}
+          method={m}
+          disabledHint={disabled[m]}
+          onPress={onExpressPress}
+          onLongPress={onExpressLongPress}
+        />
       ))}
       {express.length > 0 && (
         <View style={styles.orRow}>
