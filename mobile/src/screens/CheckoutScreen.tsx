@@ -2,7 +2,7 @@ import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardField } from '../components/CardFields';
@@ -14,6 +14,7 @@ import { PaymentMethodList, type ExpressMethodId } from '../components/PaymentMe
 import { ProcessingOverlay } from '../components/ProcessingOverlay';
 import { QuantityStepper } from '../components/QuantityStepper';
 import { ResultView } from '../components/ResultView';
+import { Spinner } from '../components/Spinner';
 import { DevMenuButton } from '../dev/DevMenu';
 import { useCardForm } from '../hooks/useCardForm';
 import { useCheckout } from '../hooks/useCheckout';
@@ -182,7 +183,7 @@ export function CheckoutScreen() {
         {error ? (
           <OrderError message={error} onRetry={retryOrder} />
         ) : (
-          <ActivityIndicator testID="order-loading" size="large" color={colors.green500} />
+          <Spinner testID="order-loading" />
         )}
       </View>
     );

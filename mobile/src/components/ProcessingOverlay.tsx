@@ -1,5 +1,6 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing, type } from '../theme';
+import { Spinner } from './Spinner';
 
 const COPY = {
   processing: { message: 'Processing payment…', sub: "Don't close the app." },
@@ -13,7 +14,7 @@ export function ProcessingOverlay({ variant = 'processing' }: { variant?: keyof 
   return (
     <View testID={`processing-overlay-${variant}`} style={styles.backdrop}>
       <View style={styles.panel}>
-        <ActivityIndicator size="large" color={colors.green500} />
+        <Spinner />
         <Text style={styles.message}>{message}</Text>
         <Text style={styles.sub}>{sub}</Text>
       </View>
