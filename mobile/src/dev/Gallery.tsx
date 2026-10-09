@@ -1,4 +1,4 @@
-// Component gallery: every component + variant, static props. Dev-only; toggle SHOW_GALLERY in App.tsx.
+// Component gallery: every component + variant, static props. Dev-only; toggle "Show component gallery" in the dev menu.
 import { StatusBar } from 'expo-status-bar';
 import { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import { ProcessingOverlay } from '../components/ProcessingOverlay';
 import { QuantityStepper } from '../components/QuantityStepper';
 import { ResultView } from '../components/ResultView';
 import { colors, radii, spacing, type } from '../theme';
+import { DevMenuButton } from './DevMenu';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -105,6 +106,9 @@ export default function Gallery() {
         </Section>
       </ScrollView>
       <View style={styles.statusBarScrim} />
+      <View style={styles.devMenu}>
+        <DevMenuButton />
+      </View>
       <StatusBar style="light" />
     </View>
   );
@@ -127,5 +131,6 @@ const styles = StyleSheet.create({
   inline: { flexDirection: 'row', gap: spacing.md },
   overlayDemo: { borderRadius: radii.card, overflow: 'hidden' },
   // Opaque strip so scrolled content doesn't collide with the status bar.
+  devMenu: { position: 'absolute', top: 60, right: spacing.sm },
   statusBarScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 56, backgroundColor: colors.bgBase },
 });

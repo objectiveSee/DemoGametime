@@ -1,11 +1,21 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import Gallery from './src/dev/Gallery';
+import { EnvironmentProvider, useDevSettings } from './src/hooks/useEnvironment';
 import { CheckoutScreen } from './src/screens/CheckoutScreen';
 
-// Flip to review every component variant in the dev gallery.
-const SHOW_GALLERY = false;
-
 export default function App() {
-  return <SafeAreaProvider>{SHOW_GALLERY ? <Gallery /> : <CheckoutScreen />}</SafeAreaProvider>;
+  return (
+    <SafeAreaProvider>
+      <EnvironmentProvider>
+        <Root />
+      </EnvironmentProvider>
+    </SafeAreaProvider>
+  );
+}
+
+// The component gallery is toggled from the dev menu ("Show component gallery").
+function Root() {
+  const { showGallery } = useDevSettings();
+  return showGallery ? <Gallery /> : <CheckoutScreen />;
 }

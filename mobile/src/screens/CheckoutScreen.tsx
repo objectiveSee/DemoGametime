@@ -14,9 +14,10 @@ import { PaymentMethodList, type ExpressMethodId } from '../components/PaymentMe
 import { ProcessingOverlay } from '../components/ProcessingOverlay';
 import { QuantityStepper } from '../components/QuantityStepper';
 import { ResultView } from '../components/ResultView';
+import { DevMenuButton } from '../dev/DevMenu';
 import { useCardForm } from '../hooks/useCardForm';
 import { useCheckout } from '../hooks/useCheckout';
-import { useEnvironment } from '../hooks/useEnvironment';
+import { useDevSettings, useEnvironment } from '../hooks/useEnvironment';
 import { useOrder } from '../hooks/useOrder';
 import { cvcLength, isCardNumberComplete, validateCardNumber, type CardBrand } from '../lib/cardValidation';
 import { eligibleMethods, isExpressMethod } from '../lib/eligibility';
@@ -39,9 +40,16 @@ export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const [quantity, setQuantity] = useState(DEFAULT_QUANTITY);
   const { order, current, error, retry: retryOrder } = useOrder(quantity);
-  const environment = useEnvironment();
+  const liveEnvironment = useEnvironment();
+  const { forceExpressDecline } = useDevSettings();
   const card = useCardForm();
   const checkout = useCheckout();
+  const { state, busy } = checkout;
+
+  // Dev-menu environment changes apply live, but never mid-attempt: while a payment is busy the
+  // methods stay as they were, and the new environment lands on the next idle render.
+  const [environment, setEnvironment] = useState(liveEnvironment);
+  if (!busy && environment !== liveEnvironment) setEnvironment(liveEnvironment);
   const [cardExpanded, setCardExpanded] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
@@ -66,7 +74,6 @@ export function CheckoutScreen() {
     return () => sub.remove();
   }, [cardExpanded]);
 
-  const { state, busy } = checkout;
   const canPay = card.valid && current !== null && !busy;
   const pay = () => {
     if (!current || !canPay) return;
@@ -74,7 +81,8 @@ export function CheckoutScreen() {
     checkout.payWithCard(current, card.values);
   };
 
-  // Whether the in-progress express authorization should come back declined (hidden long-press hook).
+  // Whether the in-progress express authorization should come back declined (long-press test hook,
+  // or "Force express decline" in the dev menu).
   const simulateDecline = useRef(false);
 
   // The Affirm stub is redirect-shaped: a real browser opens over the app (which loses focus, like
@@ -106,8 +114,8 @@ export function CheckoutScreen() {
   const onExpressPress = (method: ExpressMethodId, declined = false) => {
     if (!current || busy) return;
     Keyboard.dismiss();
-    simulateDecline.current = declined;
-    if (method === 'affirm') startAffirm(current, declined);
+    simulateDecline.current = declined || forceExpressDecline;
+    if (method === 'affirm') startAffirm(current, simulateDecline.current);
     else checkout.startExpress(method); // the wallet sheet below takes it from here
   };
 
@@ -265,6 +273,7 @@ export function CheckoutScreen() {
       <StatusBar style="light" />
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Text style={styles.title}>Checkout</Text>
+        <DevMenuButton />
       </View>
       <View style={styles.body}>
         {body}
@@ -304,6 +313,9 @@ function OrderError({ message, onRetry }: { message: string; onRetry: () => void
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgBase },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     backgroundColor: colors.bgBase,
