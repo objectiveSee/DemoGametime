@@ -47,7 +47,8 @@ export function Collapse({ visible, children, durationMs = 300 }: Props) {
           ? {
               overflow: 'hidden',
               height: progress.interpolate({ inputRange: [0, 1], outputRange: [0, height] }),
-              opacity: progress,
+              // Never fully transparent: iOS drops alpha-0 views from the accessibility tree.
+              opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [0.05, 1] }),
             }
           : undefined
       }
