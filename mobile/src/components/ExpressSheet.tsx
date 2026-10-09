@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { ExpressMethod } from '../lib/expressAuth';
 import { haptics } from '../lib/haptics';
 import { colors, radii, spacing, touchTarget, type } from '../theme';
@@ -15,6 +16,8 @@ import { colors, radii, spacing, touchTarget, type } from '../theme';
 // real wallets wait on the user here), short enough to keep express feeling express.
 const PROMPT_MS = 3200;
 const TICK_MS = 700;
+// Far enough to start the card fully below the screen edge.
+const SHEET_TRAVEL = 480;
 
 const COPY: Record<'apple_pay' | 'google_pay', { mark: string; prompt: string; done: string }> = {
   apple_pay: { mark: ' Pay', prompt: 'Confirm with Face ID', done: 'Done' },
@@ -39,6 +42,13 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
   // Prompt pulses while "waiting for the biometric"; the tick springs in once it "succeeds".
   const [pulse] = useState(() => new Animated.Value(1));
   const [tickScale] = useState(() => new Animated.Value(0.2));
+  // The Modal itself only fades (so the scrim dims in place); the card slides up on its own.
+  const reduced = useReducedMotion();
+  const [rise] = useState(() => new Animated.Value(reduced ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(rise, { toValue: 1, duration: 340, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [rise]);
+  const sheetTravel = rise.interpolate({ inputRange: [0, 1], outputRange: [SHEET_TRAVEL, 0] });
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -68,7 +78,7 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
   }, []);
 
   return (
-    <Modal transparent animationType="slide" statusBarTranslucent visible onRequestClose={onCancel}>
+    <Modal transparent animationType="fade" statusBarTranslucent visible onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <Pressable
           testID="express-sheet-scrim"
@@ -76,7 +86,10 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
           style={styles.scrim}
           onPress={onCancel}
         />
-        <View testID={`express-sheet-${method}`} style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <Animated.View
+          testID={`express-sheet-${method}`}
+          style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg, transform: [{ translateY: sheetTravel }] }]}
+        >
           <View style={styles.grabber} />
           <View style={styles.header}>
             <Text style={styles.mark}>{mark}</Text>
@@ -120,7 +133,7 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
               </View>
             )}
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
