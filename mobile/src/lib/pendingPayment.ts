@@ -1,8 +1,8 @@
 // The no-double-charge keystone. Before any POST /payments, the exact attempt (idempotency key +
 // amount) is written to disk. If the app dies mid-request, the relaunch finds the snapshot and
 // re-POSTs it verbatim: the server replays the original result for that key instead of charging
-// again. Recovery must use the snapshot, never re-derived order state — the server answers 409 if
-// the amount doesn't match, and a fresh key would be a second charge.
+// again. Recovery must reuse the snapshot's key — the server answers a known key before checking
+// the amount, and a fresh key would be a second charge (or a 409 if the price moved).
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { RecoveryOutcome } from './checkoutState';
