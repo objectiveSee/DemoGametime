@@ -2,3 +2,4 @@
 # Needs Metro (:8081), the mock server (:4000) and Expo Go on a booted iOS simulator.
 flows:
   - "0*.yaml"
+  - "1*.yaml"

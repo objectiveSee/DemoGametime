@@ -1,0 +1,85 @@
+# Environment simulator: the dev menu (gear in the header) forces platform / wallet state so every
+# eligibility branch is reviewable on one iOS simulator. Real detection is the default and Reset
+# returns to it. Overrides are in-memory, so _launch's cold start always begins from detection.
+appId: host.exp.Exponent
+name: Dev menu environment simulator
+---
+- runFlow: _launch.yaml
+- assertVisible:
+    id: express-apple_pay
+- assertNotVisible:
+    id: dev-menu-active
+
+# Force Android: Google Pay replaces Apple Pay; Affirm (total > $100) and card stay.
+- tapOn:
+    id: dev-menu-button
+- tapOn:
+    id: dev-platform-android
+- tapOn:
+    id: dev-menu-close
+- assertVisible:
+    id: express-google_pay
+- assertNotVisible:
+    id: express-apple_pay
+- assertVisible:
+    id: express-affirm
+- assertVisible:
+    id: dev-menu-active
+
+# Android with Google Pay not set up: no wallet at all.
+- tapOn:
+    id: dev-menu-button
+- tapOn:
+    id: dev-google-pay-not-set-up
+- tapOn:
+    id: dev-menu-close
+- assertNotVisible:
+    id: express-google_pay
+- assertVisible:
+    id: express-affirm
+
+# Back to iOS with no provisioned cards: Apple Pay hidden, Affirm + card remain.
+- tapOn:
+    id: dev-menu-button
+- tapOn:
+    id: dev-platform-ios
+- tapOn:
+    id: dev-no-provisioned-cards
+- tapOn:
+    id: dev-menu-close
+- assertNotVisible:
+    id: express-apple_pay
+- assertNotVisible:
+    id: express-google_pay
+- assertVisible:
+    id: express-affirm
+- assertVisible: "or pay with card"
+
+# Reset: real detection (Apple Pay on the iOS simulator), no override indicator.
+- tapOn:
+    id: dev-menu-button
+- tapOn:
+    id: dev-menu-reset
+- tapOn:
+    id: dev-menu-close
+- assertVisible:
+    id: express-apple_pay
+- assertNotVisible:
+    id: dev-menu-active
+
+# Force express decline: a plain tap on Apple Pay now comes back declined; Try Again returns to idle.
+- tapOn:
+    id: dev-menu-button
+- tapOn:
+    id: dev-force-express-decline
+- tapOn:
+    id: dev-menu-close
+- tapOn:
+    id: express-apple_pay
+- extendedWaitUntil:
+    visible: "Payment declined."
+    timeout: 25000
+- tapOn:
+    id: retry-button
+- assertVisible:
+    id: express-apple_pay
