@@ -73,8 +73,10 @@ function Success({ confirmationCode }: { confirmationCode?: string }) {
     opacity: pop.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 0, 1], extrapolate: 'clamp' }),
     transform: [{ scale: pop.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.4, 0.4, 1] }) }],
   };
+  // Rising copy never starts fully transparent: iOS drops alpha-0 views from the accessibility
+  // tree, so VoiceOver (and UI tests) would find "You're going." but not the code beneath it.
   const riseStyle = (v: Animated.Value, distance: number) => ({
-    opacity: v,
+    opacity: v.interpolate({ inputRange: [0, 1], outputRange: [0.05, 1] }),
     transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [distance, 0] }) }],
   });
 

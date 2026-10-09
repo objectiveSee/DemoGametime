@@ -33,7 +33,8 @@ export function ChevronBurst({ delayMs = 0 }: { delayMs?: number }) {
       toValue: 1,
       delay: delayMs,
       duration: DURATION_MS,
-      easing: Easing.linear,
+      // Eased here, not in interpolate: the native driver doesn't support interpolation easing.
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
     animation.start(({ finished }) => finished && setDone(true));
@@ -41,9 +42,11 @@ export function ChevronBurst({ delayMs = 0 }: { delayMs?: number }) {
   }, [progress, delayMs]);
 
   if (done) return null;
-  const travel = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1], easing: Easing.out(Easing.cubic) });
-  const opacity = progress.interpolate({ inputRange: [0, 0.06, 0.45, 1], outputRange: [0, 1, 0.85, 0] });
-  const scale = progress.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0.3, 1, 0.6] });
+  // `progress` is already eased out, so these breakpoints sit on the travel curve: a quick
+  // flash in, then a long fade as the chevrons coast.
+  const travel = progress;
+  const opacity = progress.interpolate({ inputRange: [0, 0.15, 0.75, 1], outputRange: [0, 1, 0.8, 0] });
+  const scale = progress.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.3, 1, 0.6] });
 
   return (
     <View pointerEvents="none" style={styles.origin}>

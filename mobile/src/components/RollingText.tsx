@@ -15,7 +15,10 @@ type Props = { value: string; style?: StyleProp<TextStyle>; testID?: string };
 
 const EASE = Easing.out(Easing.cubic);
 
-type Roll = { plan: RollPlan; clock: Animated.Value; widthClock: Animated.Value };
+// One eased 0→1 value per column (interpolate `easing` isn't supported on the native driver, so
+// the easing lives on each column's own timing). Transforms run natively; grow/shrink widths
+// can't, so those columns get a JS-driven twin.
+type Roll = { plan: RollPlan; motion: Animated.Value[]; width: Animated.Value[] };
 
 export function RollingText({ value, style, testID }: Props) {
   const reduced = useReducedMotion();
@@ -33,19 +36,28 @@ export function RollingText({ value, style, testID }: Props) {
     setLastRollable(value);
     setRoll(
       plan && !reduced && height && digitWidth
-        ? // Fresh clocks (ms) per roll, so a new roll never inherits a finished one's position.
-          // Transforms run on the native driver; grow/shrink widths can't, hence the JS twin.
-          { plan, clock: new Animated.Value(0), widthClock: new Animated.Value(0) }
+        ? // Fresh values per roll, so a new roll never inherits a finished one's position.
+          {
+            plan,
+            motion: plan.columns.map(() => new Animated.Value(0)),
+            width: plan.columns.map(() => new Animated.Value(0)),
+          }
         : null,
     );
   }
 
   useEffect(() => {
     if (!roll) return;
-    const { plan, clock, widthClock } = roll;
-    const timing = (v: Animated.Value, useNativeDriver: boolean) =>
-      Animated.timing(v, { toValue: plan.durationMs, duration: plan.durationMs, easing: Easing.linear, useNativeDriver });
-    const animation = Animated.parallel([timing(clock, true), timing(widthClock, false)]);
+    const { plan, motion, width } = roll;
+    const timing = (v: Animated.Value, delay: number, useNativeDriver: boolean) =>
+      Animated.timing(v, { toValue: 1, delay, duration: ROLL_MS, easing: EASE, useNativeDriver });
+    const animation = Animated.parallel(
+      plan.columns.flatMap(({ from, to }, i) =>
+        from === to
+          ? []
+          : [timing(motion[i], plan.delays[i], true), ...(from && to ? [] : [timing(width[i], plan.delays[i], false)])],
+      ),
+    );
     animation.start(({ finished }) => finished && setRoll(null));
     return () => animation.stop();
   }, [roll]);
@@ -79,10 +91,9 @@ export function RollingText({ value, style, testID }: Props) {
             <Column
               key={i}
               column={column}
-              delay={roll.plan.delays[i]}
               direction={roll.plan.direction}
-              clock={roll.clock}
-              widthClock={roll.widthClock}
+              motion={roll.motion[i]}
+              width={roll.width[i]}
               height={height}
               digitWidth={digitWidth}
               style={style}
@@ -96,26 +107,24 @@ export function RollingText({ value, style, testID }: Props) {
 
 type ColumnProps = {
   column: RollColumn;
-  delay: number;
   direction: 1 | -1;
-  clock: Animated.Value;
-  widthClock: Animated.Value;
+  motion: Animated.Value;
+  width: Animated.Value;
   height: number;
   digitWidth: number;
   style?: StyleProp<TextStyle>;
 };
 
-function Column({ column: { from, to }, delay, direction, clock, widthClock, height, digitWidth, style }: ColumnProps) {
+function Column({ column: { from, to }, direction, motion, width: widthValue, height, digitWidth, style }: ColumnProps) {
   if (from === to) return <Text style={style}>{to}</Text>;
 
-  const range = { inputRange: [delay, delay + ROLL_MS], extrapolate: 'clamp' as const, easing: EASE };
-  const t = (outputRange: number[]) => clock.interpolate({ ...range, outputRange });
+  const t = (outputRange: number[]) => motion.interpolate({ inputRange: [0, 1], outputRange });
   const travel = direction * height;
   // Grow/shrink columns animate their width so the label's left edge glides instead of jumping.
   const width = !from
-    ? widthClock.interpolate({ ...range, outputRange: [0, digitWidth] })
+    ? widthValue.interpolate({ inputRange: [0, 1], outputRange: [0, digitWidth] })
     : !to
-      ? widthClock.interpolate({ ...range, outputRange: [digitWidth, 0] })
+      ? widthValue.interpolate({ inputRange: [0, 1], outputRange: [digitWidth, 0] })
       : undefined;
 
   return (
