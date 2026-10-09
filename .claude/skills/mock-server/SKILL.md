@@ -5,7 +5,7 @@ description: Run, check, and exercise the local mock payment API (server/index.j
 
 # Mock payment server
 
-> `server/index.js` is the source of truth (zero dependencies, ~170 lines). The contract rationale lives in README.md "Mock API contract". If this file and the code disagree, the code wins — fix this file.
+> `server/index.js` is the source of truth (zero dependencies, ~240 lines). The contract rationale lives in README.md "Mock API contract". If this file and the code disagree, the code wins — fix this file.
 
 ## Start / stop / check
 
@@ -13,7 +13,7 @@ description: Run, check, and exercise the local mock payment API (server/index.j
   `curl -s localhost:4000/health` → `{"ok":true}`
 - **Start detached** (from repo root, survives the shell):
   `nohup node server/index.js > server/server.log 2>&1 &`
-  Foreground alternatives: `node server/index.js`, or `npm start` inside `server/`.
+  Foreground alternatives: `node server/index.js`, or `npm start` inside `server/` (tees stdout to `server/server.log`).
 - **Log:** `server/server.log` (gitignored). One line per request: method, path, status, payment id + status, `(replayed)`, duration.
 - **Who's on the port / stop it:** `lsof -iTCP:4000 -sTCP:LISTEN` then `kill <pid>`.
 - Port override: `PORT=4001 node server/index.js`.

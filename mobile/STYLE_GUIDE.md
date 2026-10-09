@@ -2,7 +2,7 @@
 
 - Use the system font — no custom font installs.
 - Dark mode only.
-- No custom components built yet — the guide below is a reference for when we do build.
+- No custom component library — the app's components (`src/components/`) are hand-built, with colors from `src/theme.ts`, which takes its tokens from this guide.
 
 ---
 

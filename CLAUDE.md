@@ -4,7 +4,7 @@ Quick take-home demo — favor working-and-simple over polished; don't get hung 
 
 Development targets the **iOS simulator** (easiest to drive and iterate on). Android is deferred until the end.
 
-Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-home PDF + REQUIREMENTS.md)
+Layout: `mobile/` (Expo app; Maestro suite in `mobile/.maestro/`) · `server/` (mock payment API) · `docs/` (take-home PDF + REQUIREMENTS.md) · `.claude/skills/` (maestro, mock-server)
 
 ## How this project is built
 
@@ -38,7 +38,7 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-ho
 ## Linting
 
 - ESLint (`eslint-config-expo` + `eslint-config-prettier`, `mobile/eslint.config.js`) and Prettier (root `.prettierrc`). Format-on-save is on via `.vscode/settings.json`.
-- Run `npm run lint` in `mobile/` before committing app code. Don't mass-reformat; files get formatted as they're touched.
+- Run `npm run lint` in `mobile/` before committing app code. `mobile/` passes `npx prettier --check .` (Maestro YAML and the Lottie export are in `mobile/.prettierignore`); keep it that way.
 
 ## Expo Go compatibility
 
