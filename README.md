@@ -25,7 +25,6 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) 
   &nbsp;&nbsp;
   <img src=".github/screenshot-android.png" width="264" alt="Checkout on Android: Google Pay offered">
 </p>
-<p align="center"><sub>Same code, real detection — Apple Pay on iOS, Google Pay on Android.</sub></p>
 
 ## Development harness
 
