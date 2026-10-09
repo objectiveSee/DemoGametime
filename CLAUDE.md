@@ -32,3 +32,9 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-ho
 
 - ESLint (`eslint-config-expo` + `eslint-config-prettier`, `mobile/eslint.config.js`) and Prettier (root `.prettierrc`). Format-on-save is on via `.vscode/settings.json`.
 - Run `npm run lint` in `mobile/` before committing app code. Don't mass-reformat; files get formatted as they're touched.
+
+## Expo Go compatibility
+
+- The app must keep running in **Expo Go** — no prebuild, no dev build, no custom native modules. Only add JS-only packages or native modules listed in `mobile/node_modules/expo/bundledNativeModules.json`, installed with `npx expo install` so versions match Expo Go.
+- Known Expo Go gaps: Face ID via `expo-local-authentication` is unsupported (use a fake biometric UI instead); real Apple/Google Pay are out of scope anyway (stubbed).
+- If something seems to require breaking this, **STOP** and surface it to the user with the why before proceeding.
