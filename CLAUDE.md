@@ -27,3 +27,8 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-ho
 - Write spec tests (Jest-style unit tests) liberally for logic — validation, eligibility, state. **Not** Maestro tests.
 - Maestro (via the `mcp__maestro__*` tools) is the primary driver for actually exercising the app in the simulator — manual verification, not scripted test suites.
 - `.claude/skills/maestro/SKILL.md` is a **living document**: whoever uses Maestro and hits tips, gotchas, or breakages folds them back into the skill. Keep it about the craft of running Maestro smoothly (device selection, flakiness, timing, common errors) — not app-code specifics.
+
+## Linting
+
+- ESLint (`eslint-config-expo` + `eslint-config-prettier`, `mobile/eslint.config.js`) and Prettier (root `.prettierrc`). Format-on-save is on via `.vscode/settings.json`.
+- Run `npm run lint` in `mobile/` before committing app code. Don't mass-reformat; files get formatted as they're touched.
