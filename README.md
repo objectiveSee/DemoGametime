@@ -34,7 +34,7 @@ npm install
 npx expo start --ios            # opens in Expo Go on the booted simulator
 npx expo start --android        # or: on a booted emulator with Expo Go installed
 
-# 3. Unit specs — 381 tests over validation, eligibility, state, recovery
+# 3. Unit specs — 383 tests over validation, eligibility, state, recovery
 cd mobile && npm test
 ```
 
