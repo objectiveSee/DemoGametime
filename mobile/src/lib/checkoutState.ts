@@ -45,7 +45,7 @@ export type CheckoutEvent =
 export const initialCheckoutState: CheckoutState = { status: 'idle' };
 
 /** Idle and declined are the resting states a fan can start a new attempt from. */
-const canStart = (state: CheckoutState) => state.status === 'idle' || state.status === 'declined';
+export const canStart = (state: CheckoutState) => state.status === 'idle' || state.status === 'declined';
 
 export function checkoutReducer(state: CheckoutState, event: CheckoutEvent): CheckoutState {
   switch (event.type) {

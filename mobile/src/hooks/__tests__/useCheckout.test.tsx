@@ -37,28 +37,36 @@ function mountCheckout() {
   return ref as { current: ReturnType<typeof useCheckout> };
 }
 
+/** Mounted, with the launch-time snapshot read settled (attempts are gated on it). */
+async function mountLoaded() {
+  const checkout = mountCheckout();
+  await act(async () => {});
+  return checkout;
+}
+
+const goodCard = { number: '4242 4242 4242 4242', expiry: '12/30', cvc: '123' };
+
+const succeededPayment = {
+  id: 'pay_1',
+  orderId: order.id,
+  amountCents: 13590,
+  method: 'card',
+  status: 'succeeded',
+  confirmationCode: 'GT-ABC123',
+  createdAt: '2026-10-09T13:05:12Z',
+};
+
 beforeEach(async () => {
   await AsyncStorage.clear();
   (postPayment as jest.Mock).mockReset();
-  (postPayment as jest.Mock).mockResolvedValue({
-    replayed: false,
-    payment: {
-      id: 'pay_1',
-      orderId: order.id,
-      amountCents: 13590,
-      method: 'card',
-      status: 'succeeded',
-      confirmationCode: 'GT-ABC123',
-      createdAt: '2026-10-09T13:05:12Z',
-    },
-  });
+  (postPayment as jest.Mock).mockResolvedValue({ replayed: false, payment: succeededPayment });
 });
 
 describe('useCheckout: start new order', () => {
   it('the snapshot is already cleared at success, and new order returns to a fresh idle', async () => {
-    const checkout = mountCheckout();
+    const checkout = await mountLoaded();
     await act(async () => {
-      await checkout.current.payWithCard(order, { number: '4242 4242 4242 4242', expiry: '12/30', cvc: '123' });
+      await checkout.current.payWithCard(order, goodCard);
     });
 
     expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
@@ -131,29 +139,106 @@ describe('useCheckout: relaunch recovery while the server is down', () => {
   });
 });
 
-describe('useCheckout: relaunch replay gate', () => {
-  // The snapshot read is async, so an express tap can land first. The reducer then ignores
-  // RELAUNCH_WITH_PENDING; the replay must not run either (it would grab inFlight and swallow the
-  // fan's authorization).
-  it('skips the replay when checkout already left idle before the snapshot loaded', async () => {
-    await persistSnapshot({
-      idempotencyKey: 'key-pending',
-      orderId: order.id,
-      quantity: 2,
-      amountCents: 13590,
-      method: 'card',
+describe('useCheckout: launch gate', () => {
+  const pending = {
+    idempotencyKey: 'key-pending',
+    orderId: order.id,
+    quantity: 2,
+    amountCents: 13590,
+    method: 'card' as const,
+  };
+
+  // A new attempt would overwrite the pending snapshot and lose its recovery, so attempts issued
+  // before the snapshot read settles are refused.
+  it('refuses attempts issued before the snapshot loads, then recovers the pending payment', async () => {
+    await persistSnapshot(pending);
+    (postPayment as jest.Mock).mockResolvedValue({
+      replayed: true,
+      payment: { ...succeededPayment, id: 'pay_pending', confirmationCode: 'GT-PEND01' },
     });
     const checkout = mountCheckout();
-    act(() => checkout.current.startExpress('apple_pay'));
-    await act(async () => {});
-
-    expect(postPayment).not.toHaveBeenCalled();
-    expect(checkout.current.state).toMatchObject({ status: 'authorizing', method: 'apple_pay' });
+    let started = true;
+    act(() => {
+      started = checkout.current.startExpress('apple_pay');
+    });
+    const early = checkout.current.payWithCard(order, goodCard);
+    expect(started).toBe(false);
+    expect(checkout.current.state).toEqual({ status: 'idle' });
 
     await act(async () => {
-      await checkout.current.completeExpress(order, 'apple_pay', 'tok_apple_pay_1');
+      await early;
     });
     expect(postPayment).toHaveBeenCalledTimes(1);
+    expect((postPayment as jest.Mock).mock.calls[0][0]).toMatchObject({ idempotencyKey: 'key-pending' });
+    expect(checkout.current.state).toMatchObject({
+      status: 'succeeded',
+      receipt: { confirmationCode: 'GT-PEND01' },
+    });
+  });
+
+  it('lets attempts through once the snapshot has loaded', async () => {
+    const checkout = await mountLoaded();
+    let started = false;
+    act(() => {
+      started = checkout.current.startExpress('apple_pay');
+    });
+    expect(started).toBe(true);
+    expect(checkout.current.state).toMatchObject({ status: 'authorizing', method: 'apple_pay' });
+  });
+
+  it('a failed snapshot read still unlocks checkout', async () => {
+    const getItem = jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('disk'));
+    const checkout = await mountLoaded();
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(postPayment).toHaveBeenCalledTimes(1);
+    expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
+    getItem.mockRestore();
+  });
+});
+
+describe('useCheckout: card submit only from a resting state', () => {
+  it('ignores a card submit while an express authorization is up', async () => {
+    const checkout = await mountLoaded();
+    act(() => {
+      checkout.current.startExpress('apple_pay');
+    });
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(postPayment).not.toHaveBeenCalled();
+    expect(await loadSnapshot()).toBeNull();
+    expect(checkout.current.state).toMatchObject({ status: 'authorizing', method: 'apple_pay' });
+  });
+
+  it('ignores a card submit after the purchase succeeded', async () => {
+    const checkout = await mountLoaded();
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(postPayment).toHaveBeenCalledTimes(1);
+    expect(await loadSnapshot()).toBeNull();
+  });
+
+  it('accepts a new submit after a decline', async () => {
+    (postPayment as jest.Mock).mockResolvedValueOnce({
+      replayed: false,
+      payment: { ...succeededPayment, status: 'declined', failureCode: 'card_declined', failureMessage: 'Declined' },
+    });
+    const checkout = await mountLoaded();
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(checkout.current.state).toMatchObject({ status: 'declined' });
+    await act(async () => {
+      await checkout.current.payWithCard(order, goodCard);
+    });
+    expect(postPayment).toHaveBeenCalledTimes(2);
     expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
   });
 });

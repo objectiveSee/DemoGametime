@@ -139,7 +139,7 @@ export function CheckoutScreen() {
   // ephemeral session skips iOS's sign-in consent alert; the await spans the whole round trip,
   // including any backgrounding while the browser is up.
   const startAffirm = async (order: Order, declined: boolean) => {
-    checkout.startExpress('affirm');
+    if (!checkout.startExpress('affirm')) return;
     const returnUrl = Linking.createURL('affirm');
     const url = affirmCheckoutUrl({
       baseUrl: API_BASE_URL,

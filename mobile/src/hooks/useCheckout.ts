@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import { toCardPayload, validateCardForm, type CardForm } from '../lib/cardValidation';
-import { checkoutReducer, initialCheckoutState, isBusy, type Failure } from '../lib/checkoutState';
+import { canStart, checkoutReducer, initialCheckoutState, isBusy, type Failure } from '../lib/checkoutState';
 import type { ExpressMethod } from '../lib/expressAuth';
 import {
   ApiError,
@@ -46,6 +46,9 @@ export function useCheckout() {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  // New attempts wait for the launch-time snapshot read: one started first would overwrite a
+  // pending attempt's snapshot, losing its recovery. The read takes milliseconds.
+  const snapshotLoaded = useRef(false);
 
   /** Replays the snapshot until the server gives a definitive answer. Stays in "checking" meanwhile. */
   const resolveUnknown = useCallback(async (snapshot: PaymentSnapshot) => {
@@ -64,17 +67,25 @@ export function useCheckout() {
     }
   }, []);
 
-  // Relaunch: a snapshot on disk means the app died with a payment in flight. The read is async,
-  // so a tap can beat it; the reducer only enters `checking` from idle, and the replay follows suit
-  // (the snapshot stays on disk for the next launch, or is replaced by the new attempt).
+  // Relaunch: a snapshot on disk means the app died with a payment in flight. Replay it.
   useEffect(() => {
-    loadSnapshot().then((snapshot) => {
-      if (!snapshot || inFlight.current || stateRef.current.status !== 'idle') return;
-      inFlight.current = true;
-      dispatch({ type: 'RELAUNCH_WITH_PENDING', method: snapshot.method });
-      resolveUnknown(snapshot).finally(() => (inFlight.current = false));
-    });
+    loadSnapshot()
+      .catch(() => null)
+      .then((snapshot) => {
+        snapshotLoaded.current = true;
+        // No attempt can have started yet (they wait for this read), so checkout is idle.
+        if (!snapshot) return;
+        inFlight.current = true;
+        dispatch({ type: 'RELAUNCH_WITH_PENDING', method: snapshot.method });
+        resolveUnknown(snapshot).finally(() => (inFlight.current = false));
+      });
   }, [resolveUnknown]);
+
+  /** Whether a new attempt may start now: after the snapshot read, from a resting state, once. */
+  const canStartAttempt = useCallback(
+    () => snapshotLoaded.current && !inFlight.current && canStart(stateRef.current),
+    [],
+  );
 
   /**
    * Shared tail of every attempt: POST the (already persisted) snapshot and settle the outcome.
@@ -110,7 +121,7 @@ export function useCheckout() {
 
   const payWithCard = useCallback(
     async (order: Order, form: CardForm) => {
-      if (inFlight.current) return;
+      if (!canStartAttempt()) return;
       inFlight.current = true;
       setNotice(null);
       try {
@@ -140,15 +151,23 @@ export function useCheckout() {
         inFlight.current = false;
       }
     },
-    [runAttempt],
+    [runAttempt, canStartAttempt],
   );
 
-  /** Tap on an express button: brings up that method's authorization (sheet / redirect). */
-  const startExpress = useCallback((method: ExpressMethod) => {
-    if (inFlight.current) return;
-    setNotice(null);
-    dispatch({ type: 'EXPRESS_START', method });
-  }, []);
+  /**
+   * Tap on an express button: brings up that method's authorization (sheet / redirect). False when
+   * the tap is refused, so the caller doesn't open a redirect for an attempt that never started.
+   */
+  const startExpress = useCallback(
+    (method: ExpressMethod) => {
+      if (!canStartAttempt()) return false;
+      setNotice(null);
+      dispatch({ type: 'EXPRESS_START', method });
+      stateRef.current = { status: 'authorizing', method }; // refuse a second tap in the same frame
+      return true;
+    },
+    [canStartAttempt],
+  );
 
   /** The fan backed out of the sheet / redirect. Nothing was sent; back to idle, no error UI. */
   const cancelExpress = useCallback(() => dispatch({ type: 'SHEET_CANCELLED' }), []);
