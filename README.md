@@ -36,7 +36,7 @@ Second, the steering: a top-level orchestrator dispatched a focused subagent per
 | **Model mix** | 6 frontier-model subagents (planning, review, hardest build) · 28 mid-tier workhorses |
 | **Model calls** | 3,344 |
 | **Fresh tokens** | ~13M input/output, of the ~490M processed |
-| **Commits on `main`** | 77, each one sub-task |
+| **Commits on `main`** | 75+ — one per completed sub-task |
 | **Adversarial review rounds** | 3 |
 | **Custom agent skills** | 2 — `maestro`, `mock-server` |
 | **Wall-clock** | ~6½ hours, first commit to final gate, in one session |
