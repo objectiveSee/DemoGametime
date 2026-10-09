@@ -76,7 +76,7 @@ Two deliberate properties: overrides are **in-memory only** (a persisted overrid
 |---|---|
 | `GET /order?quantity=N` | Server-priced order (subtotal, fees, total) — the client never does money math |
 | `POST /payments` | The single purchase endpoint for every method |
-| `GET /payments/:id` | Status lookup; belt-and-suspenders read path for recovery |
+| `GET /payments/:id` | Status lookup by payment id. Part of the contract; the app doesn't call it — recovery re-POSTs the snapshot under the same idempotency key instead |
 | `GET /affirm/checkout` | Hosted HTML stand-in for Affirm's redirect; deep-links back with a token or a cancel |
 | `POST /debug/delay` | Test hook: pin the processing delay (used by flow 07); `x-mock-delay` header overrides per-request |
 | `GET /health` | `{"ok":true}` |

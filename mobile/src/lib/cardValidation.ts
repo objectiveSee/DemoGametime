@@ -20,7 +20,9 @@ export function detectBrand(input: string): CardBrand {
   if (d.startsWith('4')) return 'visa';
   if (d.startsWith('34') || d.startsWith('37')) return 'amex';
   if (inRange(d, 2, 51, 55) || inRange(d, 4, 2221, 2720)) return 'mastercard';
-  if (d.startsWith('6011') || d.startsWith('65')) return 'discover';
+  if (d.startsWith('6011') || d.startsWith('65') || inRange(d, 3, 644, 649) || inRange(d, 6, 622126, 622925)) {
+    return 'discover';
+  }
   return 'unknown';
 }
 

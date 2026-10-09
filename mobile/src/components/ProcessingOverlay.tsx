@@ -8,8 +8,7 @@ const COPY = {
   checking: { message: 'Checking your payment…', sub: 'Hang tight — confirming your order status.' },
 };
 
-const STILL_CHECKING =
-  'Still checking — your card has NOT been double-charged. Keep the app open or try again later.';
+const STILL_CHECKING = 'Still checking — your card has NOT been double-charged. Keep the app open or try again later.';
 
 // Fills its nearest positioned parent; dims whatever is underneath.
 export function ProcessingOverlay({

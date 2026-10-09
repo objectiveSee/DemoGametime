@@ -44,6 +44,15 @@ describe('detectBrand', () => {
     ${'6012'}                | ${'unknown'}
     ${'65'}                  | ${'discover'}
     ${'6011111111111117'}    | ${'discover'}
+    ${'64'}                  | ${'unknown'}
+    ${'643'}                 | ${'unknown'}
+    ${'644'}                 | ${'discover'}
+    ${'649'}                 | ${'discover'}
+    ${'62212'}               | ${'unknown'}
+    ${'622125'}              | ${'unknown'}
+    ${'622126'}              | ${'discover'}
+    ${'622925'}              | ${'discover'}
+    ${'622926'}              | ${'unknown'}
     ${''}                    | ${'unknown'}
     ${'4242 4242 4242 4242'} | ${'visa'}
   `('$input -> $brand', ({ input, brand }) => {

@@ -2,7 +2,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { CardNumberInput, CvvInput, ExpiryInput, FieldState } from '../components/CardFields';
+import type { FieldState } from '../components/CardFields';
 import { DevMenuSheet } from '../components/DevMenuSheet';
 import { OrderSummaryCard } from '../components/OrderSummaryCard';
 import { PayButton } from '../components/PayButton';
@@ -12,6 +12,7 @@ import { QuantityStepper } from '../components/QuantityStepper';
 import { ResultView } from '../components/ResultView';
 import { colors, radii, spacing, type } from '../theme';
 import { DevMenuButton } from './DevMenu';
+import { CardNumberInput, CvvInput, ExpiryInput } from './MockCardInputs';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (

@@ -111,6 +111,9 @@ const errorBody = (code, message) => ({ error: { code, ...(message && { message 
 
 const formatCents = (cents) => `$${(cents / 100).toFixed(2)}`;
 
+// JSON.stringify for inline <script>: escaping '<' keeps a crafted return_to from closing the tag.
+const scriptString = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
+
 function affirmPage(params) {
   const amount = Number(params.get('amount_cents'));
   const amountLabel = Number.isFinite(amount) ? formatCents(amount) : 'your order';
@@ -139,8 +142,8 @@ function affirmPage(params) {
   <button id="cancel">Cancel</button>
 </div>
 <script>
-  const back = (query) => { location.href = ${JSON.stringify(returnTo)} + (${JSON.stringify(returnTo)}.includes('?') ? '&' : '?') + query; };
-  document.getElementById('approve').onclick = () => back('token=' + encodeURIComponent(${JSON.stringify(token)}));
+  const back = (query) => { location.href = ${scriptString(returnTo)} + (${scriptString(returnTo)}.includes('?') ? '&' : '?') + query; };
+  document.getElementById('approve').onclick = () => back('token=' + encodeURIComponent(${scriptString(token)}));
   document.getElementById('cancel').onclick = () => back('cancelled=1');
 </script></body></html>`;
 }

@@ -1,8 +1,8 @@
 // Stub wallet sheet (Apple Pay / Google Pay). Mimics the real interaction shape: slides up over
 // checkout, shows what's being paid, runs a fake biometric confirmation, then authorizes on its
-// own — the express tap stays the only interaction. The fan can still back out (✕, scrim tap or
-// swipe-down via the Modal) any time before authorization fires; after that the charge is in
-// flight and the sheet is gone.
+// own — the express tap stays the only interaction. The fan can still back out (✕, scrim tap, or
+// the Modal's onRequestClose, i.e. Android back) any time before authorization fires; after that
+// the charge is in flight and the sheet is gone. No swipe-down: it's a transparent Modal.
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
