@@ -44,7 +44,7 @@ cd mobile && maestro test .maestro
 | 09 | Affirm redirects through a real browser and deep-links back to a completed purchase |
 | 10 | Environment simulator forces every eligibility branch from one device |
 
-Flow 07 is the keystone: it sets the server's processing delay to 20 s, kills Expo Go while the charge is in flight, cold-starts it, and asserts recovery lands on the original payment. The server's stdout — or `server/server.log` when run via `npm start` — shows one `pay_` id across both POSTs, the second marked `(replayed)`.
+Flow 07 is the keystone: it sets the server's processing delay to 20 s, kills Expo Go while the charge is in flight, cold-starts it, and asserts recovery lands on the original payment. It then verifies single-charge itself: it reads the server's distinct-charge count (`GET /debug/charges`) before and after, and fails unless it moved by exactly 1 — replays under the same idempotency key don't count. The server's stdout — or `server/server.log` when run via `npm start` — tells the same story: one `pay_` id across both POSTs, the second marked `(replayed)`.
 
 ## Eligibility detection & the environment simulator
 
@@ -79,6 +79,7 @@ Two deliberate properties: overrides are **in-memory only** (a persisted overrid
 | `GET /payments/:id` | Status lookup by payment id. Part of the contract; the app doesn't call it — recovery re-POSTs the snapshot under the same idempotency key instead |
 | `GET /affirm/checkout` | Hosted HTML stand-in for Affirm's redirect; deep-links back with a token or a cancel |
 | `POST /debug/delay` | Test hook: pin the processing delay (used by flow 07); `x-mock-delay` header overrides per-request |
+| `GET /debug/charges` | Test hook: `{"count"}` of distinct charges started (one per idempotency key; replays don't count) — flow 07 asserts it moves by exactly 1 |
 | `GET /health` | `{"ok":true}` |
 
 Design decisions, and why:
@@ -106,7 +107,7 @@ plus `checking` — "we don't know yet" — entered from a relaunch with a pendi
 
 **Kill-and-relaunch:** the snapshot is written *before* every POST, so a killed app leaves evidence. On launch, a found snapshot moves checkout to `checking` ("Checking your payment…") and re-POSTs the snapshot verbatim — same key, same amount — with exponential backoff until the server answers definitively. Replay semantics guarantee the answer is the *original* charge's outcome: success shows the original confirmation code; a decline shows the decline. One honest wrinkle: **card numbers are never persisted**, so a card replay carries no card. If the server says `replayed: true`, the original outcome stands; if it doesn't (the original POST never arrived), the card-less request fails validation — which proves nothing was charged, so recovery resets to idle with "You have not been charged." That heuristic trades a tiny ambiguity window for never writing a PAN to disk.
 
-**Single charge, evidenced:** the server logs every request to stdout (and to `server/server.log` when run via `npm start`). A kill-and-relaunch run shows two `POST /payments` lines with one payment id — the second marked `(replayed)`:
+**Single charge, evidenced:** flow 07 asserts it mechanically via `GET /debug/charges` (above). For a human-readable trail, the server logs every request to stdout (and to `server/server.log` when run via `npm start`). A kill-and-relaunch run shows two `POST /payments` lines with one payment id — the second marked `(replayed)`:
 
 ```
 POST /payments -> 201 pay_Ab3dE9fG succeeded 20013ms
@@ -118,7 +119,7 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 - **Stubbed wallet SDKs.** The sheets mimic the real interaction shape (capability check → sheet → authorization token) but aren't PassKit/Google Pay. The stub boundary is the same one a real integration would occupy: swap the sheet, keep the token-shaped contract.
 - **Expo Go constraint** — JS-only dependencies, no custom native modules. That rules out real wallet APIs and Face ID, but bought fast iteration and a Maestro-drivable app with zero build steps for a reviewer.
 - **No navigation library.** Checkout is a single screen; the result renders as a layer over the form. That kills the back-gesture-mid-payment class of bugs outright and keeps Try Again landing exactly where the fan left off — right for this scope, not a stance against navigation generally.
-- **In-memory server.** Restart forgets payments and idempotency keys. Acceptable for a demo; a real backend persists both.
+- **In-memory server.** Restart forgets payments and idempotency keys. Acceptable for a demo; a real backend persists both. It also means a server restart mid-recovery can mislabel a card payment: the replay arrives under an unknown key, processes as a new card-less attempt, declines `incorrect_number`, and reads as "not charged" even if the original charge went through.
 - **Card recovery without the PAN** (above): the `replayed` flag, not resubmitted credentials, decides the outcome. Real systems tokenize the card first so the retry carries a token, same as express here.
 - **Quantity stepper** is a demo affordance — the PDF starts after seat selection — kept because it makes "total changed, Affirm reacted" a one-tap demonstration.
 - **Dark mode only** (per project pragmatics); light mode is unhandled.
@@ -137,8 +138,8 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 
 This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
 
-- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server's request log as ground truth (it's what proves single-charge).
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
 - **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
 - **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
 - **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
-- **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, and `POST /debug/delay` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
+- **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, `POST /debug/delay`, and `GET /debug/charges` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
