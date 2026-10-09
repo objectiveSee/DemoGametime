@@ -1,12 +1,12 @@
 # Gametime Checkout & Payments — Take-Home
 
-A React Native (Expo) checkout screen with eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim — built end-to-end by AI agents inside an agentic harness this repo also contains (see [Development harness](#development-harness)).
+This take-home was built end-to-end by AI agents (Claude Code). A human set up an agentic harness — policies, verification loops, custom skills, a deterministic mock server — then steered a top-level orchestrator as it dispatched subagents to build, test, and review the feature. What it built is Gametime's checkout: eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim.
 
-Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
+The harness lives in this repo alongside the app (see [Development harness](#development-harness)), and the commit history is its audit trail. Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
 
 ## Development harness
 
-This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. Every line of code, test, and doc here was written by AI agents (Claude Code), deliberately; this section doubles as the AI-usage disclosure the submission asks for.
+An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately; this section doubles as the AI-usage disclosure the submission asks for.
 
 The human work went into two things. First, the setup: building the harness itself so the loop could run on its own —
 
