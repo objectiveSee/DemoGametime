@@ -313,7 +313,7 @@ export function CheckoutScreen() {
         <ProcessingOverlay />
       </Fade>
       <Fade visible={state.status === 'checking'}>
-        <ProcessingOverlay variant="checking" />
+        <ProcessingOverlay variant="checking" stillChecking={checkout.stillChecking} />
       </Fade>
       {walletSheet ? (
         <ExpressSheet

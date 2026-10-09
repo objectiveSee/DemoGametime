@@ -26,6 +26,9 @@ import {
 } from '../lib/pendingPayment';
 
 const RECOVERY_BACKOFF_MS = [1000, 2000, 4000, 8000];
+// After this many failed replays (~23 s of backoff) the checking overlay reassures the fan; the
+// replays carry on at the 8 s cap, and the snapshot stays put until the server answers.
+const SLOW_CHECK_AFTER_ATTEMPTS = 5;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -34,6 +37,7 @@ const NOT_CHARGED_NOTICE = "Your last payment didn't go through. You have not be
 export function useCheckout() {
   const [state, dispatch] = useReducer(checkoutReducer, initialCheckoutState);
   const [notice, setNotice] = useState<string | null>(null);
+  const [slowCheck, setSlowCheck] = useState(false);
   // The reducer already ignores a second SUBMIT, but the side effects below must not run twice.
   const inFlight = useRef(false);
   // Mirrors `state` for callbacks that outlive a render (e.g. the express sheet's authorize timer
@@ -45,13 +49,16 @@ export function useCheckout() {
 
   /** Replays the snapshot until the server gives a definitive answer. Stays in "checking" meanwhile. */
   const resolveUnknown = useCallback(async (snapshot: PaymentSnapshot) => {
+    setSlowCheck(false);
     for (let attempt = 0; ; attempt++) {
       try {
         const outcome = await recoverPendingPayment(snapshot, postPayment);
         if (outcome.kind === 'not_charged') setNotice(NOT_CHARGED_NOTICE);
+        setSlowCheck(false);
         dispatch({ type: 'RECOVERY_RESOLVED', outcome });
         return;
       } catch {
+        if (attempt + 1 >= SLOW_CHECK_AFTER_ATTEMPTS) setSlowCheck(true);
         await sleep(RECOVERY_BACKOFF_MS[Math.min(attempt, RECOVERY_BACKOFF_MS.length - 1)]);
       }
     }
@@ -191,6 +198,8 @@ export function useCheckout() {
     state,
     busy: isBusy(state),
     notice,
+    /** Recovery has been retrying a while (server unreachable): show the reassurance line. */
+    stillChecking: state.status === 'checking' && slowCheck,
     payWithCard,
     startExpress,
     cancelExpress,

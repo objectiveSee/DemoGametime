@@ -8,8 +8,18 @@ const COPY = {
   checking: { message: 'Checking your payment…', sub: 'Hang tight — confirming your order status.' },
 };
 
+const STILL_CHECKING =
+  'Still checking — your card has NOT been double-charged. Keep the app open or try again later.';
+
 // Fills its nearest positioned parent; dims whatever is underneath.
-export function ProcessingOverlay({ variant = 'processing' }: { variant?: keyof typeof COPY }) {
+export function ProcessingOverlay({
+  variant = 'processing',
+  stillChecking = false,
+}: {
+  variant?: keyof typeof COPY;
+  /** Recovery can't reach the server yet: add the reassurance line under the usual copy. */
+  stillChecking?: boolean;
+}) {
   const { message, sub } = COPY[variant];
   return (
     <View testID={`processing-overlay-${variant}`} style={styles.backdrop}>
@@ -17,6 +27,11 @@ export function ProcessingOverlay({ variant = 'processing' }: { variant?: keyof 
         <Spinner />
         <Text style={styles.message}>{message}</Text>
         <Text style={styles.sub}>{sub}</Text>
+        {stillChecking ? (
+          <Text testID="still-checking" style={styles.sub}>
+            {STILL_CHECKING}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
