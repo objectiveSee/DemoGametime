@@ -3,12 +3,12 @@
 // own — the express tap stays the only interaction. The fan can still back out (✕, scrim tap or
 // swipe-down via the Modal) any time before authorization fires; after that the charge is in
 // flight and the sheet is gone.
-import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { ExpressMethod } from '../lib/expressAuth';
+import { haptics } from '../lib/haptics';
 import { colors, radii, spacing, touchTarget, type } from '../theme';
 
 // How long the fake biometric moment lingers. Long enough to read (and for a cancel to land —
@@ -52,9 +52,10 @@ export function ExpressSheet({ method, eventTitle, quantity, totalLabel, onCance
   }, [pulse]);
 
   useEffect(() => {
+    haptics.tap(); // the sheet arriving
     const confirm = setTimeout(() => {
       setPhase('confirmed');
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptics.tap(); // "Face ID" done: where real Apple Pay taps too
       Animated.spring(tickScale, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }).start();
     }, PROMPT_MS);
     const authorize = setTimeout(onAuthorized, PROMPT_MS + TICK_MS);

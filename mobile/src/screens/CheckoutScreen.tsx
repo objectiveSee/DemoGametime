@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -22,6 +21,7 @@ import { useOrder } from '../hooks/useOrder';
 import { cvcLength, isCardNumberComplete, validateCardNumber, type CardBrand } from '../lib/cardValidation';
 import { eligibleMethods, isExpressMethod } from '../lib/eligibility';
 import { affirmCheckoutUrl, expressAuthToken, parseAffirmReturn } from '../lib/expressAuth';
+import { haptics } from '../lib/haptics';
 import { formatCents, summarizeOrder } from '../lib/orderDisplay';
 import { API_BASE_URL, type Order } from '../lib/paymentsApi';
 import { colors, spacing, type } from '../theme';
@@ -125,10 +125,9 @@ export function CheckoutScreen() {
       ? { method: state.method, order: current }
       : null;
 
-  // Confirmation / decline haptic, once per settled outcome.
+  // Decline haptic, once per settled decline. (Success plays its own, in time with the check.)
   useEffect(() => {
-    if (state.status === 'succeeded') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    else if (state.status === 'declined') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    if (state.status === 'declined') haptics.warning();
   }, [state.status]);
 
   const onNumberChange = (raw: string) => {
@@ -201,7 +200,11 @@ export function CheckoutScreen() {
           cardExpanded={cardExpanded}
           onExpressPress={onExpressPress}
           onExpressLongPress={(method) => onExpressPress(method, true)}
-          onCardPress={() => !busy && setCardExpanded((open) => !open)}
+          onCardPress={() => {
+            if (busy) return;
+            haptics.tap();
+            setCardExpanded((open) => !open);
+          }}
           cardForm={
             <>
               <CardField

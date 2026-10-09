@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { haptics } from '../lib/haptics';
 import { colors, radii, spacing, touchTarget, type } from '../theme';
 
 type Props = {
@@ -11,6 +12,11 @@ type Props = {
 };
 
 export function QuantityStepper({ quantity = 2, min = 1, max = 8, label = 'Tickets', disabled, onChange }: Props) {
+  // The buttons disable at the clamps, so every press that lands is a real step: tick on each.
+  const step = (next: number) => {
+    haptics.tick();
+    onChange?.(next);
+  };
   return (
     <View testID="quantity-stepper" style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -19,7 +25,7 @@ export function QuantityStepper({ quantity = 2, min = 1, max = 8, label = 'Ticke
           glyph="−"
           label="Fewer tickets"
           disabled={disabled || quantity <= min}
-          onPress={() => onChange?.(quantity - 1)}
+          onPress={() => step(quantity - 1)}
           testID="quantity-decrement"
         />
         <Text testID="quantity-value" style={styles.value}>
@@ -29,7 +35,7 @@ export function QuantityStepper({ quantity = 2, min = 1, max = 8, label = 'Ticke
           glyph="+"
           label="More tickets"
           disabled={disabled || quantity >= max}
-          onPress={() => onChange?.(quantity + 1)}
+          onPress={() => step(quantity + 1)}
           testID="quantity-increment"
         />
       </View>

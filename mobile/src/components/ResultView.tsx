@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { haptics } from '../lib/haptics';
 import { colors, radii, spacing, type } from '../theme';
 import { PayButton } from './PayButton';
 
@@ -7,6 +9,9 @@ type Props =
 
 export function ResultView(props: Props) {
   const success = props.variant === 'success';
+  useEffect(() => {
+    if (success) haptics.success();
+  }, [success]);
   return (
     <View testID={`result-${props.variant}`} style={styles.card}>
       <View style={[styles.icon, success ? styles.iconSuccess : styles.iconDeclined]}>
