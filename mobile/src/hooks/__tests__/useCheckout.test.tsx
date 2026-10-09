@@ -13,7 +13,13 @@ jest.mock('../../lib/paymentsApi', () => ({
 
 const order: Order = {
   id: 'ord_demo_001',
-  event: { id: 'evt', title: 'Warriors vs Lakers', venue: 'Chase Center', city: 'SF', startsAt: '2026-10-24T19:30:00-07:00' },
+  event: {
+    id: 'evt',
+    title: 'Warriors vs Lakers',
+    venue: 'Chase Center',
+    city: 'SF',
+    startsAt: '2026-10-24T19:30:00-07:00',
+  },
   listing: { id: 'lst', section: '115', row: '12', deliveryType: 'mobile_transfer' },
   quantity: 2,
   pricing: { unitPriceCents: 5800, subtotalCents: 11600, fees: [], totalCents: 13590, currency: 'USD' },
@@ -122,5 +128,32 @@ describe('useCheckout: relaunch recovery while the server is down', () => {
     expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
     expect(checkout.current.stillChecking).toBe(false);
     expect(await loadSnapshot()).toBeNull();
+  });
+});
+
+describe('useCheckout: relaunch replay gate', () => {
+  // The snapshot read is async, so an express tap can land first. The reducer then ignores
+  // RELAUNCH_WITH_PENDING; the replay must not run either (it would grab inFlight and swallow the
+  // fan's authorization).
+  it('skips the replay when checkout already left idle before the snapshot loaded', async () => {
+    await persistSnapshot({
+      idempotencyKey: 'key-pending',
+      orderId: order.id,
+      quantity: 2,
+      amountCents: 13590,
+      method: 'card',
+    });
+    const checkout = mountCheckout();
+    act(() => checkout.current.startExpress('apple_pay'));
+    await act(async () => {});
+
+    expect(postPayment).not.toHaveBeenCalled();
+    expect(checkout.current.state).toMatchObject({ status: 'authorizing', method: 'apple_pay' });
+
+    await act(async () => {
+      await checkout.current.completeExpress(order, 'apple_pay', 'tok_apple_pay_1');
+    });
+    expect(postPayment).toHaveBeenCalledTimes(1);
+    expect(checkout.current.state).toMatchObject({ status: 'succeeded' });
   });
 });

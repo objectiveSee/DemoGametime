@@ -64,10 +64,12 @@ export function useCheckout() {
     }
   }, []);
 
-  // Relaunch: a snapshot on disk means the app died with a payment in flight.
+  // Relaunch: a snapshot on disk means the app died with a payment in flight. The read is async,
+  // so a tap can beat it; the reducer only enters `checking` from idle, and the replay follows suit
+  // (the snapshot stays on disk for the next launch, or is replaced by the new attempt).
   useEffect(() => {
     loadSnapshot().then((snapshot) => {
-      if (!snapshot || inFlight.current) return;
+      if (!snapshot || inFlight.current || stateRef.current.status !== 'idle') return;
       inFlight.current = true;
       dispatch({ type: 'RELAUNCH_WITH_PENDING', method: snapshot.method });
       resolveUnknown(snapshot).finally(() => (inFlight.current = false));
