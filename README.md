@@ -1,8 +1,18 @@
 # Gametime Checkout & Payments — Take-Home
 
-A React Native (Expo) checkout screen with eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim — built end-to-end by AI agents inside an agentic harness this repo also contains (see [How this was built](#how-this-was-built)).
+A React Native (Expo) checkout screen with eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim — built end-to-end by AI agents inside an agentic harness this repo also contains (see [Development harness](#development-harness)).
 
 Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
+
+## Development harness
+
+This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
+
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
+- **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
+- **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
+- **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
+- **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, `POST /debug/delay`, and `GET /debug/charges` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
 
 ## Running it
 
@@ -125,7 +135,7 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 - **Card recovery without the PAN** (above): the `replayed` flag, not resubmitted credentials, decides the outcome. Real systems tokenize the card first so the retry carries a token, same as express here.
 - **Quantity stepper** is a demo affordance — the PDF starts after seat selection — kept because it makes "total changed, Affirm reacted" a one-tap demonstration.
 - **Dark mode only** (per project pragmatics); light mode is unhandled.
-- **Android runs the suite on an emulator only** (no physical device). One Android-only accommodation: Expo Go draws edge-to-edge and `automaticallyAdjustKeyboardInsets` is iOS-only, so on Android checkout pads its scroll content by the keyboard height to keep the card fields and Pay button above the keyboard.
+- **Android runs the suite on an emulator only** (no physical device). One Android-only accommodation: Expo Go draws edge-to-edge and `automaticallyAdjustKeyboardInsets` is iOS-only, so on Android checkout pads its scroll content by the keyboard height to keep the card fields and Pay button above the keyboard. Android reports an animator duration scale of 0 (common on emulators and CI) to apps as reduce-motion, so animations deliberately jump-cut there; on devices with default settings they play.
 - **No drag-to-dismiss on the wallet sheet.** Cancellation is the ✕, the scrim, or hardware back; a real sheet gesture was polish the budget didn't justify.
 
 ## With more time
@@ -135,13 +145,3 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 - CI: Jest + the Maestro suite against a headless iOS simulator and Android emulator.
 - Accessibility audit beyond the current reduced-motion support — VoiceOver labels/ordering on the sheets and form errors as announcements.
 - Card-number tokenization before persistence, closing the recovery wrinkle properly.
-
-## How this was built
-
-This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
-
-- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 364 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
-- **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
-- **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
-- **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
-- **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, `POST /debug/delay`, and `GET /debug/charges` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
