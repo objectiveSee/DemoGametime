@@ -18,6 +18,10 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API) · `docs/` (take-ho
 - **Metro runs on the main worktree, main branch — always.** Anything we want to test or drive in the iOS simulator happens from the main worktree, so hot reload just works with no worktree switching.
 - Subagents may do parallel code work in isolated git worktrees, but the top-level orchestrator decides per-agent: an agent in an isolated worktree does **not** use Maestro or touch the simulator; an agent given control of the simulator/Maestro works in the main worktree.
 
+## Documentation
+
+- **Go light on docs.** The code should document itself; the top-level orchestrator keeps the plan in its head. No plan files. Any doc that does exist must be kept current or deleted — stale docs are worse than none.
+
 ## Testing
 
 - Write spec tests (Jest-style unit tests) liberally for logic — validation, eligibility, state. **Not** Maestro tests.
