@@ -8,11 +8,17 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) 
 
 This repo is an agentic harness — a self-contained environment in which AI agents build, test, and iterate on a feature autonomously — and the checkout is the feature it built. The harness's parts, as they exist here:
 
-- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 381 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
+- **Verification loops the agents close themselves:** Maestro on the iOS simulator (interactively via MCP while building, plus the committed requirement suite), the 383 Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
 - **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are living skills — agents read them before driving the simulator or the API, and fold gotchas back in as they hit them.
 - **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
 - **Process:** a top-level orchestrator dispatches focused subagents per subtask; adversarial review agents audit the result against the take-home rubric. The commit history is the audit trail.
 - **The mock server doubles as a harness fixture:** deterministic magic triggers, the `x-mock-delay` header, `POST /debug/delay`, and `GET /debug/charges` exist so agents can exercise lifecycle edges (like kill-mid-charge) deterministically.
+
+### AI usage, disclosed
+
+**Where and why:** all of it. Every line of code, test, and doc here was written by AI agents (Claude Code) orchestrated as described above — deliberately, since demonstrating that workflow is part of the submission. Every commit carries a `Co-Authored-By` trailer.
+
+**How the output was validated and challenged:** nothing an agent produced was taken on its word. It had to pass the 383 Jest specs and the 10-flow Maestro suite on both iOS and Android (flow 07 machine-asserts single-charge against the server), backed by live mock-server request logs. On top of that, three adversarial review rounds sent independent reviewer agents hunting for the builders' mistakes. They found real bugs that were then fixed — e.g. a launch race where a fast tap could overwrite a pending attempt's snapshot and POST a second charge (`bec3c28`), and a failed snapshot clear that left the overlay stuck in processing (`574a7de`). `CLAUDE.md` holds the rules the agents worked under; the commit history is the audit trail.
 
 ## Running it
 
