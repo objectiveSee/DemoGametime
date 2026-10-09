@@ -70,3 +70,8 @@ appId: host.exp.Exponent
 - `inspect_view_hierarchy` on a React Native screen shows deep nesting of identical-bounds views; filter for rows with `accessibilityText`/`resource-id`.
 - `disown` fails in non-interactive shells ("job not found") — harmless; `nohup ... &` alone is enough to keep the dev server alive.
 - The simulator status bar may render in the host machine's locale (e.g. Spanish) — don't match on status-bar text.
+- **Expo Go's floating gear ("Tools button") overlaps the top-right of every screen.** Hide it for clean screenshots: tap it (`id: "gearshape.fill"`), scroll the dev menu to the **Tools button** toggle, switch it off, close with `id: "xmark"`. The setting persists in Expo Go.
+- **`tapOn: point:` percentages must be whole numbers** — `85%, 65.6%` fails with `For input string: "65.6"`.
+- **Scrolling a long screen:** `swipe` with `start: 50%, 85%` / `end: 50%, 15%` and `duration: 800`+ moves about 70% of a screen with no fling, so consecutive screenshots overlap cleanly. Short durations fling and skip content.
+- **Saving screenshots to a known path:** `take_screenshot` only returns the image inline (stored under Claude's tool-results). To write a PNG where you want it, use `xcrun simctl io <UDID> screenshot <path>.png`. That capture also includes the Dynamic Island, which Maestro's doesn't.
+- **Hot reload keeps scroll position** — after an edit, re-screenshot in place. No relaunch needed.
