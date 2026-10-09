@@ -48,3 +48,4 @@ name: Card validation gates submit
 - assertVisible:
     id: pay-button
     enabled: true
+- runFlow: _hold.yaml

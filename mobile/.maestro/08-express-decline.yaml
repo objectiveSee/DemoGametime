@@ -16,3 +16,4 @@ name: Express declined, then back to checkout
 - assertVisible: "or pay with card"
 - assertVisible:
     id: express-apple_pay
+- runFlow: _hold.yaml

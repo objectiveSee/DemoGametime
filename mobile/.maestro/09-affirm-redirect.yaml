@@ -19,3 +19,4 @@ name: Affirm redirect round trip
     visible: "You're going."
     timeout: 25000
 - assertVisible: "GT-[A-Z0-9]{6}"
+- runFlow: _hold.yaml

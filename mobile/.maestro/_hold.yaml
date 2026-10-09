@@ -1,0 +1,8 @@
+# Shared subflow: keep each flow's final screen up for ~3 s so someone watching the suite sees the
+# outcome before the next flow cold-starts. Assertions are done by now; this only adds dwell time.
+appId: host.exp.Exponent
+---
+- runScript:
+    file: scripts/hold.js
+    env:
+      HOLD_MS: "3000"

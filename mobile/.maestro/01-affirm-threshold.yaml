@@ -51,3 +51,4 @@ name: Order loads, the total rolls, and Affirm tracks the $100 threshold
     visible: "$135.90"
     timeout: 5000
 - assertVisible: "Pay over time with affirm"
+- runFlow: _hold.yaml

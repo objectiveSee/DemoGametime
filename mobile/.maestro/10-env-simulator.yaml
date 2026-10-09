@@ -83,3 +83,4 @@ name: Dev menu environment simulator
     id: retry-button
 - assertVisible:
     id: express-apple_pay
+- runFlow: _hold.yaml

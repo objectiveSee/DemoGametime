@@ -24,3 +24,4 @@ name: Card declined, then retry with the form intact
 - assertVisible:
     id: pay-button
     enabled: true
+- runFlow: _hold.yaml

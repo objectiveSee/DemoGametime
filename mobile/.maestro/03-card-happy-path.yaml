@@ -27,3 +27,4 @@ name: Card happy path
     id: express-apple_pay
 - assertNotVisible:
     id: card-number-input
+- runFlow: _hold.yaml

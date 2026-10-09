@@ -37,3 +37,4 @@ name: Kill and relaunch mid-charge, exactly one charge
     file: scripts/set-delay.js
     env:
       DELAY_MS: "null"
+- runFlow: _hold.yaml
