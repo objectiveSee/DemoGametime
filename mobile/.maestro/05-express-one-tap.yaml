@@ -1,0 +1,15 @@
+# Express is actually express: one tap on Apple Pay buys the tickets. The wallet sheet's fake
+# biometric auto-confirms — there is deliberately no second submit tap anywhere in this flow.
+# The sheet itself (~3.9 s on screen) is too transient to assert reliably (see the maestro
+# skill's transient-UI gotcha); flow 06 proves it exists by cancelling through it, so this flow
+# asserts the thing that matters: tap → confirmation, nothing in between.
+appId: host.exp.Exponent
+name: Express one-tap (Apple Pay)
+---
+- runFlow: _launch.yaml
+- tapOn:
+    id: express-apple_pay
+- extendedWaitUntil:
+    visible: "You're going."
+    timeout: 25000
+- assertVisible: "GT-[A-Z0-9]{6}"

@@ -28,6 +28,8 @@ All money is integer cents. Errors are `{"error":{"code","message?"}}`.
 | `GET /order?quantity=N` | Priced order. `quantity` defaults to 2; must be integer 1-8 else 400 `invalid_quantity` |
 | `POST /payments` | Body: `idempotencyKey`, `quantity`, `amountCents`, `method` (`card`/`apple_pay`/`google_pay`/`affirm`), plus `card.number` or `token` |
 | `GET /payments/:id` | 200 `{payment}` or 404 `not_found` |
+| `GET /affirm/checkout` | HTML stand-in for Affirm's hosted checkout. Query: `amount_cents`, `order_id`, `return_to` (deep link the page redirects back to with `?token=tok_affirm_…` on approve or `?cancelled=1`), `decline=1` makes the approve token carry the `tok_declined` prefix |
+| `POST /debug/delay` | Test hook: `{"ms":20000}` overrides the default processing delay for all payments until `{"ms":null}` resets it. Lets Maestro flows kill the app mid-charge deterministically. An `x-mock-delay` header still wins over the override |
 
 ## Magic triggers
 

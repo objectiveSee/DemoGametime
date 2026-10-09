@@ -1,0 +1,25 @@
+# Backing out of the wallet sheet is a clean no-op: no server call, no error UI, checkout idle.
+# The sheet auto-authorizes after ~3.9 s, so the cancel must land fast: waitToSettleTimeoutMs
+# keeps commands from waiting out animations, and the cancel is a positional tap on the scrim
+# (tapping the ✕ by id needs a hierarchy fetch, which can lose the race). The point is tapped
+# twice because the first tap can arrive before the modal has rendered (harmless — it hits the
+# order card).
+appId: host.exp.Exponent
+name: Express cancel returns to idle
+---
+- runFlow: _launch.yaml
+- tapOn:
+    id: express-apple_pay
+    waitToSettleTimeoutMs: 150
+- tapOn:
+    point: "50%, 20%"
+    waitToSettleTimeoutMs: 150
+- tapOn:
+    point: "50%, 20%"
+    waitToSettleTimeoutMs: 150
+- assertVisible: "or pay with card"
+- assertNotVisible: "You're going."
+- assertNotVisible: "Processing payment…"
+- assertNotVisible: "Payment declined."
+- assertVisible:
+    id: express-apple_pay

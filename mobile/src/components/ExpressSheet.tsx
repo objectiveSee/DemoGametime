@@ -13,11 +13,11 @@ import { colors, radii, spacing, touchTarget, type } from '../theme';
 
 // How long the fake biometric moment lingers. Long enough to read (and for a cancel to land —
 // real wallets wait on the user here), short enough to keep express feeling express.
-const PROMPT_MS = 2600;
+const PROMPT_MS = 3200;
 const TICK_MS = 700;
 
 const COPY: Record<'apple_pay' | 'google_pay', { mark: string; prompt: string; done: string }> = {
-  apple_pay: { mark: ' Pay', prompt: 'Confirm with Face ID', done: 'Done' },
+  apple_pay: { mark: ' Pay', prompt: 'Confirm with Face ID', done: 'Done' },
   google_pay: { mark: 'G Pay', prompt: "Verify it's you", done: 'Verified' },
 };
 

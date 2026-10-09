@@ -1,0 +1,21 @@
+# Affirm is redirect-shaped: the tap opens a real browser (ASWebAuthenticationSession) over the
+# app — the app genuinely loses focus — and the hosted demo page deep-links back with a token,
+# which completes the purchase with no further in-app interaction.
+#
+# Maestro on iOS cannot see web content (the browser's accessibility tree isn't exposed), so the
+# in-browser taps are positional against the page we control: "Approve plan" sits at 50%,65% on
+# this device size. Screenshots are the ground truth if this flow misbehaves.
+appId: host.exp.Exponent
+name: Affirm redirect round trip
+---
+- runFlow: _launch.yaml
+- tapOn: "Pay over time with affirm"
+- waitForAnimationToEnd:
+    timeout: 5000
+# "Approve plan" on the hosted page.
+- tapOn:
+    point: "50%, 65%"
+- extendedWaitUntil:
+    visible: "You're going."
+    timeout: 25000
+- assertVisible: "GT-[A-Z0-9]{6}"
