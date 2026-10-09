@@ -1,7 +1,6 @@
 // Fetches the priced order for a quantity. Keeps the last good order on screen while a new
 // quantity loads, and ignores responses for requests the fan has already moved past.
 import { useCallback, useEffect, useState } from 'react';
-import { LayoutAnimation } from 'react-native';
 
 import { getOrder, type Order } from '../lib/paymentsApi';
 
@@ -18,8 +17,6 @@ export function useOrder(quantity: number) {
     getOrder(quantity)
       .then((next) => {
         if (stale) return;
-        // Animate the re-layout a new total causes (e.g. Affirm appearing or leaving) instead of jumping.
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setOrder(next);
         setSettled({ request, order: next });
       })

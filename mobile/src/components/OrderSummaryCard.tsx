@@ -1,5 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
+
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { colors, radii, spacing, type } from '../theme';
+import { RollingText } from './RollingText';
 
 type LineItem = { label: string; amount: string };
 
@@ -33,19 +37,36 @@ export function OrderSummaryCard({
       </Text>
       <Text style={styles.seats}>{seats}</Text>
       <View style={styles.divider} />
-      {lines.map((l) => (
-        <View key={l.label} style={styles.row}>
-          <Text style={styles.rowLabel}>{l.label}</Text>
-          <Text style={styles.rowAmount}>{l.amount}</Text>
+      {/* Keyed by position: a repriced line is the same row with new numbers, so it settles in place. */}
+      {lines.map((l, i) => (
+        <View key={i} style={styles.row}>
+          <Settle value={l.label} style={styles.rowLabel} />
+          <Settle value={l.amount} style={styles.rowAmount} />
         </View>
       ))}
       <View style={styles.divider} />
       <View style={styles.row}>
         <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalAmount}>{total}</Text>
+        <RollingText value={total} style={styles.totalAmount} />
       </View>
     </View>
   );
+}
+
+// Supporting numbers don't roll — only the total does. They dip and settle back in so a reprice
+// reads as one choreographed beat rather than a flicker.
+function Settle({ value, style }: { value: string; style: StyleProp<TextStyle> }) {
+  const reduced = useReducedMotion();
+  const [opacity] = useState(() => new Animated.Value(1));
+  const previous = useRef(value);
+  useEffect(() => {
+    if (previous.current === value) return;
+    previous.current = value;
+    if (reduced) return;
+    opacity.setValue(0.15);
+    Animated.timing(opacity, { toValue: 1, duration: 320, useNativeDriver: true }).start();
+  }, [value, reduced, opacity]);
+  return <Animated.Text style={[style, { opacity }]}>{value}</Animated.Text>;
 }
 
 const styles = StyleSheet.create({

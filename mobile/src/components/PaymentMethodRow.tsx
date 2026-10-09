@@ -1,11 +1,14 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, controlHeight, radii, spacing, type } from '../theme';
+import { Collapse } from './Collapse';
 
 export type ExpressMethodId = 'apple_pay' | 'google_pay' | 'affirm';
 
 // Express methods are direct-action: tapping the button itself starts (and completes) payment.
 // No radio, no separate Pay tap.
+const EXPRESS_ORDER: ExpressMethodId[] = ['apple_pay', 'google_pay', 'affirm'];
+
 const EXPRESS: Record<ExpressMethodId, { label: string; caption?: string; fill: string }> = {
   apple_pay: { label: ' Pay', fill: colors.black },
   google_pay: { label: 'G Pay', fill: colors.black },
@@ -97,23 +100,28 @@ export function PaymentMethodList({
   onCardPress,
 }: ListProps) {
   return (
-    <View testID="payment-method-list" style={styles.list}>
-      {express.map((m) => (
-        <ExpressPayButton
-          key={m}
-          method={m}
-          disabledHint={disabled[m]}
-          onPress={onExpressPress}
-          onLongPress={onExpressLongPress}
-        />
+    <View testID="payment-method-list">
+      {/* Every express slot is always here, collapsed when ineligible, so a method appearing or
+          leaving (Affirm at the $100 line, a dev-menu platform switch) glides in place. */}
+      {EXPRESS_ORDER.map((m) => (
+        <Collapse key={m} visible={express.includes(m)}>
+          <View style={styles.item}>
+            <ExpressPayButton
+              method={m}
+              disabledHint={disabled[m]}
+              onPress={onExpressPress}
+              onLongPress={onExpressLongPress}
+            />
+          </View>
+        </Collapse>
       ))}
-      {express.length > 0 && (
+      <Collapse visible={express.length > 0}>
         <View style={styles.orRow}>
           <View style={styles.orLine} />
           <Text style={styles.orText}>or pay with card</Text>
           <View style={styles.orLine} />
         </View>
-      )}
+      </Collapse>
       <CardMethodRow expanded={cardExpanded} onPress={onCardPress}>
         {cardForm}
       </CardMethodRow>
@@ -122,7 +130,7 @@ export function PaymentMethodList({
 }
 
 const styles = StyleSheet.create({
-  list: { gap: spacing.md },
+  item: { paddingBottom: spacing.md },
   express: {
     height: controlHeight,
     borderRadius: radii.control,
@@ -137,7 +145,7 @@ const styles = StyleSheet.create({
   affirmLabel: { fontSize: 17, fontWeight: '600', color: colors.textPrimary },
   caption: { ...type.meta, color: colors.textTertiary, marginTop: spacing.xs, textAlign: 'center' },
   captionDisabled: { color: colors.textSecondary },
-  orRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xs },
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.lg },
   orLine: { flex: 1, height: 1, backgroundColor: colors.borderSubtle },
   orText: { ...type.meta, color: colors.textTertiary },
   cardRow: {
