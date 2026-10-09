@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardField } from '../components/CardFields';
 import { ExpressSheet } from '../components/ExpressSheet';
+import { Fade } from '../components/Fade';
 import { OrderSummaryCard } from '../components/OrderSummaryCard';
 import { PayButton } from '../components/PayButton';
 import { PaymentMethodList, type ExpressMethodId } from '../components/PaymentMethodRow';
@@ -75,6 +76,21 @@ export function CheckoutScreen() {
   }, [cardExpanded]);
 
   const canPay = card.valid && current !== null && !busy;
+
+  // While a new quantity is being priced the Pay button is disabled either way. A local reprice
+  // lands in a frame or two, so it keeps showing the last amount and then rolls to the new one;
+  // only a slow one admits to "Updating total…".
+  const repricing = order !== null && current === null && !error;
+  const [slowReprice, setSlowReprice] = useState(false);
+  useEffect(() => {
+    if (!repricing) return;
+    const timer = setTimeout(() => setSlowReprice(true), 300);
+    return () => {
+      clearTimeout(timer);
+      setSlowReprice(false);
+    };
+  }, [repricing]);
+  const shownTotal = current ?? (repricing && !slowReprice ? order : null);
   const pay = () => {
     if (!current || !canPay) return;
     Keyboard.dismiss();
@@ -260,7 +276,7 @@ export function CheckoutScreen() {
               </View>
               <PayButton
                 testID="pay-button"
-                label={current ? `Pay ${formatCents(current.pricing.totalCents)}` : 'Updating total…'}
+                label={shownTotal ? `Pay ${formatCents(shownTotal.pricing.totalCents)}` : 'Updating total…'}
                 disabled={!canPay}
                 onPress={pay}
               />
@@ -282,8 +298,12 @@ export function CheckoutScreen() {
         {body}
         {result}
       </View>
-      {state.status === 'processing' || state.status === 'validating' ? <ProcessingOverlay /> : null}
-      {state.status === 'checking' ? <ProcessingOverlay variant="checking" /> : null}
+      <Fade visible={state.status === 'processing' || state.status === 'validating'}>
+        <ProcessingOverlay />
+      </Fade>
+      <Fade visible={state.status === 'checking'}>
+        <ProcessingOverlay variant="checking" />
+      </Fade>
       {walletSheet ? (
         <ExpressSheet
           method={walletSheet.method}

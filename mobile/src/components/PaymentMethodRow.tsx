@@ -1,5 +1,7 @@
-import { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ReactNode, useEffect, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { usePressScale } from '../hooks/usePressScale';
 import { colors, controlHeight, radii, spacing, type } from '../theme';
 import { Collapse } from './Collapse';
 
@@ -26,24 +28,29 @@ type ExpressProps = {
 export function ExpressPayButton({ method, disabledHint, onPress, onLongPress }: ExpressProps) {
   const { label, caption, fill } = EXPRESS[method];
   const disabled = !!disabledHint;
+  const press = usePressScale(!disabled);
   return (
     <View testID={`express-${method}`}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled }}
-        disabled={disabled}
-        onPress={() => onPress?.(method)}
-        onLongPress={onLongPress && (() => onLongPress(method))}
-        style={({ pressed }) => [
-          styles.express,
-          { backgroundColor: fill },
-          method === 'affirm' && { borderColor: fill },
-          disabled && styles.dimmed,
-          pressed && styles.pressed,
-        ]}
-      >
-        <Text style={method === 'affirm' ? styles.affirmLabel : styles.walletLabel}>{label}</Text>
-      </Pressable>
+      <Animated.View style={{ transform: [{ scale: press.scale }] }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled }}
+          disabled={disabled}
+          onPress={() => onPress?.(method)}
+          onLongPress={onLongPress && (() => onLongPress(method))}
+          onPressIn={press.onPressIn}
+          onPressOut={press.onPressOut}
+          style={({ pressed }) => [
+            styles.express,
+            { backgroundColor: fill },
+            method === 'affirm' && { borderColor: fill },
+            disabled && styles.dimmed,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={method === 'affirm' ? styles.affirmLabel : styles.walletLabel}>{label}</Text>
+        </Pressable>
+      </Animated.View>
       {(disabledHint ?? caption) ? (
         <Text style={[styles.caption, disabled && styles.captionDisabled]}>{disabledHint ?? caption}</Text>
       ) : null}
@@ -55,6 +62,17 @@ type CardRowProps = { expanded?: boolean; children?: ReactNode; onPress?: () => 
 
 // The card path is the only selectable row; selecting it expands the form + Pay button.
 export function CardMethodRow({ expanded = false, children, onPress }: CardRowProps) {
+  // The chevron turns over rather than swapping glyphs.
+  const [turn] = useState(() => new Animated.Value(expanded ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(turn, {
+      toValue: expanded ? 1 : 0,
+      duration: 260,
+      easing: Easing.bezier(0.2, 0.8, 0.2, 1),
+      useNativeDriver: true,
+    }).start();
+  }, [expanded, turn]);
+  const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
   return (
     <View testID="payment-method-card" style={[styles.cardRow, expanded && styles.cardRowExpanded]}>
       <Pressable
@@ -71,9 +89,11 @@ export function CardMethodRow({ expanded = false, children, onPress }: CardRowPr
           <Text style={styles.title}>Credit or debit card</Text>
           <Text style={styles.subtitle}>Visa, Mastercard, Amex, Discover</Text>
         </View>
-        <Text style={styles.chevron}>{expanded ? '⌃' : '⌄'}</Text>
+        <Animated.Text style={[styles.chevron, { transform: [{ rotate }] }]}>⌄</Animated.Text>
       </Pressable>
-      {expanded && children ? <View style={styles.cardBody}>{children}</View> : null}
+      <Collapse visible={expanded && !!children}>
+        <View style={styles.cardBody}>{children}</View>
+      </Collapse>
     </View>
   );
 }

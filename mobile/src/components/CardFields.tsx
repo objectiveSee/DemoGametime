@@ -1,5 +1,5 @@
-import { Ref } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { Ref, useEffect, useState } from 'react';
+import { Animated, Easing, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { colors, controlHeight, radii, spacing, type } from '../theme';
 
 export type FieldState = 'empty' | 'invalid' | 'valid';
@@ -54,12 +54,22 @@ export function CardField({
         </View>
         {trailing ? <Text style={[styles.trailing, state === 'valid' && styles.trailingValid]}>{trailing}</Text> : null}
       </View>
-      {state === 'invalid' && error ? (
-        <Text testID={`${testID}-error`} style={styles.error}>
-          {error}
-        </Text>
-      ) : null}
+      {state === 'invalid' && error ? <FieldError testID={`${testID}-error`} message={error} /> : null}
     </View>
+  );
+}
+
+// Errors drop in (fade + 4pt slide, 120 ms) rather than popping, so the form doesn't jolt.
+function FieldError({ testID, message }: { testID: string; message: string }) {
+  const [shown] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    Animated.timing(shown, { toValue: 1, duration: 120, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [shown]);
+  const translateY = shown.interpolate({ inputRange: [0, 1], outputRange: [-4, 0] });
+  return (
+    <Animated.Text testID={testID} style={[styles.error, { opacity: shown, transform: [{ translateY }] }]}>
+      {message}
+    </Animated.Text>
   );
 }
 

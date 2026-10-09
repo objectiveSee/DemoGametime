@@ -12,7 +12,7 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 
 type Props = { visible: boolean; children: ReactNode; durationMs?: number };
 
-export function Collapse({ visible, children, durationMs = 260 }: Props) {
+export function Collapse({ visible, children, durationMs = 300 }: Props) {
   const reduced = useReducedMotion();
   // The visibility the last animation landed on. While it lags `visible`, we're mid-transition.
   const [settled, setSettled] = useState(visible);
@@ -30,7 +30,7 @@ export function Collapse({ visible, children, durationMs = 260 }: Props) {
     const animation = Animated.timing(progress, {
       toValue: visible ? 1 : 0,
       duration: durationMs,
-      easing: Easing.bezier(0.2, 0.8, 0.2, 1),
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: false, // height can't run on the native driver
     });
     animation.start(({ finished }) => finished && setSettled(visible));
