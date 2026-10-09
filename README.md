@@ -10,7 +10,7 @@ Prerequisites: Node 18+, Xcode with an iOS simulator, Expo Go on that simulator 
 
 ```sh
 # 1. Mock payment API (port 4000) — from the repo root
-node server/index.js            # or: cd server && npm start
+node server/index.js            # or: cd server && npm start  (also tees the log to server/server.log)
 
 # 2. The app — in a second terminal
 cd mobile
@@ -44,7 +44,7 @@ cd mobile && maestro test .maestro
 | 09 | Affirm redirects through a real browser and deep-links back to a completed purchase |
 | 10 | Environment simulator forces every eligibility branch from one device |
 
-Flow 07 is the keystone: it sets the server's processing delay to 20 s, kills Expo Go while the charge is in flight, cold-starts it, and asserts recovery lands on the original payment. The server log (`server/server.log`) shows one `pay_` id across both POSTs, the second marked `(replayed)`.
+Flow 07 is the keystone: it sets the server's processing delay to 20 s, kills Expo Go while the charge is in flight, cold-starts it, and asserts recovery lands on the original payment. The server's stdout — or `server/server.log` when run via `npm start` — shows one `pay_` id across both POSTs, the second marked `(replayed)`.
 
 ## Eligibility detection & the environment simulator
 
@@ -106,7 +106,7 @@ plus `checking` — "we don't know yet" — entered from a relaunch with a pendi
 
 **Kill-and-relaunch:** the snapshot is written *before* every POST, so a killed app leaves evidence. On launch, a found snapshot moves checkout to `checking` ("Checking your payment…") and re-POSTs the snapshot verbatim — same key, same amount — with exponential backoff until the server answers definitively. Replay semantics guarantee the answer is the *original* charge's outcome: success shows the original confirmation code; a decline shows the decline. One honest wrinkle: **card numbers are never persisted**, so a card replay carries no card. If the server says `replayed: true`, the original outcome stands; if it doesn't (the original POST never arrived), the card-less request fails validation — which proves nothing was charged, so recovery resets to idle with "You have not been charged." That heuristic trades a tiny ambiguity window for never writing a PAN to disk.
 
-**Single charge, evidenced:** the server logs every request. A kill-and-relaunch run shows two `POST /payments` lines with one payment id — the second marked `(replayed)`:
+**Single charge, evidenced:** the server logs every request to stdout (and to `server/server.log` when run via `npm start`). A kill-and-relaunch run shows two `POST /payments` lines with one payment id — the second marked `(replayed)`:
 
 ```
 POST /payments -> 201 pay_Ab3dE9fG succeeded 20013ms

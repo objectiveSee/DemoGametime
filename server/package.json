@@ -2,6 +2,6 @@
   "name": "mock-payment-api",
   "private": true,
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js | tee server.log"
   }
 }
