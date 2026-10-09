@@ -20,6 +20,13 @@ Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) 
 
 </details>
 
+<p align="center">
+  <img src=".github/screenshot-ios.png" width="280" alt="Checkout on iOS: Apple Pay offered">
+  &nbsp;&nbsp;
+  <img src=".github/screenshot-android.png" width="264" alt="Checkout on Android: Google Pay offered">
+</p>
+<p align="center"><sub>Same code, real detection — Apple Pay on iOS, Google Pay on Android.</sub></p>
+
 ## Development harness
 
 An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately.
