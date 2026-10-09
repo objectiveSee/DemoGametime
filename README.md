@@ -21,7 +21,7 @@ npx expo start --ios            # opens in Expo Go on the booted simulator
 cd mobile && npm test
 ```
 
-**Platforms tested:** iOS simulator (iPhone 17 Pro, iOS 26.1). Android is untested but plumbed — the API base URL already does `Platform.select` (`10.0.2.2` for the emulator), and platform detection feeds the same eligibility function (see Tradeoffs).
+**Platforms tested:** iOS simulator (iPhone 17 Pro, iOS 26.1) is the primary, fully tested target; Android 15 (Pixel 9 emulator, Expo Go) was smoke-tested end-to-end — eligibility auto-detects Google Pay, card success/decline, Google Pay one-tap and cancel (including hardware back), and kill-and-relaunch recovery with a single charge. The committed Maestro suite targets iOS (Expo Go's app id differs in case on Android: `host.exp.exponent`).
 
 ### Maestro requirement suite
 
@@ -123,14 +123,14 @@ POST /payments -> 201 pay_Ab3dE9fG succeeded (replayed) 4210ms
 - **Card recovery without the PAN** (above): the `replayed` flag, not resubmitted credentials, decides the outcome. Real systems tokenize the card first so the retry carries a token, same as express here.
 - **Quantity stepper** is a demo affordance — the PDF starts after seat selection — kept because it makes "total changed, Affirm reacted" a one-tap demonstration.
 - **Dark mode only** (per project pragmatics); light mode is unhandled.
-- **Android untested.** Base URL, platform detection, Google Pay copy, and the hardware back button on sheets are all plumbed, but no emulator run has verified them.
+- **Android is smoke-tested, not suite-tested.** It was verified by hand on an emulator, not by the Maestro suite. One Android-only accommodation: Expo Go draws edge-to-edge and `automaticallyAdjustKeyboardInsets` is iOS-only, so on Android checkout pads its scroll content by the keyboard height to keep the card fields and Pay button above the keyboard.
 - **No drag-to-dismiss on the wallet sheet.** Cancellation is the ✕, the scrim, or hardware back; a real sheet gesture was polish the budget didn't justify.
 
 ## With more time
 
 - Real PassKit / Google Pay integration behind the same `EligibilityInput` + token contract (requires a dev build instead of Expo Go), and the real Affirm SDK behind the existing redirect shape.
 - Server persistence (SQLite) and auth, so idempotency survives restarts and payments belong to a user.
-- An Android emulator pass, then CI: Jest + the Maestro suite against a headless simulator.
+- Run the Maestro suite on Android too (parameterize the app id), then CI: Jest + the suite against headless simulators.
 - Accessibility audit beyond the current reduced-motion support — VoiceOver labels/ordering on the sheets and form errors as announcements.
 - Card-number tokenization before persistence, closing the recovery wrinkle properly.
 
