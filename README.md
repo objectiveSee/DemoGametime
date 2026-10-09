@@ -1,25 +1,8 @@
 # Gametime Checkout & Payments — Take-Home
 
-This take-home was built end-to-end by AI agents (Claude Code). A human set up an agentic harness — policies, verification loops, custom skills, a deterministic mock server — then steered a top-level orchestrator as it dispatched subagents to build, test, and review the feature. What it built is Gametime's checkout: eligibility-gated payment methods, a fully validated card form, stubbed express wallets (Apple Pay / Google Pay / Affirm), and a mock payment API whose idempotency contract makes "killed mid-charge, never double-charged" a demonstrable fact rather than a claim.
+Built end-to-end by AI agents inside an agentic harness: a human set up the policies, verification loops, custom agent skills, and deterministic mock API, then steered a top-level orchestrator as it dispatched 34 subagents to build, test, and adversarially review Gametime's checkout — eligibility-gated wallets, a validated card form, and payments that survive kill-mid-charge without double-charging. This intro and the numbers below double as the AI usage disclosure the submission asks for.
 
-The harness lives in this repo alongside the app (see [Development harness](#development-harness)), and the commit history is its audit trail. Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
-
-## Development harness
-
-An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately; this section doubles as the AI usage disclosure the submission asks for.
-
-The human work went into two things. First, the setup: building the harness itself so the loop could run on its own —
-
-- **Verification loops the agents close themselves:** Maestro on the simulators (interactively via MCP while building, plus the committed requirement suite), the Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
-- **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are custom skills written and maintained by the agents themselves — read before driving the simulator or the API, with gotchas folded back in as they're hit.
-- **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
-- **The mock server doubles as a harness fixture:** deterministic magic triggers and debug hooks (`x-mock-delay`, `POST /debug/delay`, `GET /debug/charges`) exist so agents can exercise lifecycle edges, like kill-mid-charge, deterministically.
-
-Second, the steering: a top-level orchestrator dispatched a focused subagent per sub-task, and the human stepped in where direction mattered — screenshots of gametime.co turned into a style guide so the app stays on-brand, and the moments of magic (the rolling-odometer total, the Lottie loading animation) were deliberately prompted, because a demo should have at least one detail that makes you look twice.
-
-**Validated and challenged, not trusted:** every change had to pass the Jest specs and the Maestro requirement flows on both platforms, with the mock server's request log as ground truth. At the end, independent reviewer agents audited the build against the take-home's own rubric — adversarially, blind to each other's findings — and the loop fixed and re-reviewed until a round came back clean.
-
-### By the numbers
+Layout: `mobile/` (Expo app) · `server/` (mock payment API, zero dependencies) · `docs/` (take-home PDF + distilled requirements).
 
 <div align="center"><img src=".github/stats.svg" alt="Project statistics: 383 Jest specs, 10 Maestro flows on 2 platforms, 34 subagents, ~490M tokens processed, 0 lines of human-written code, 3344 model calls, 3 adversarial review rounds, 2 custom skills, ~6.5 hours" width="920"></div>
 
@@ -36,6 +19,21 @@ Second, the steering: a top-level orchestrator dispatched a focused subagent per
 | **Wall-clock** | ~6½ hours, first commit to final gate, in one session |
 
 </details>
+
+## Development harness
+
+An agentic harness is a self-contained environment in which AI agents build, test, and iterate on a feature autonomously. Every line of code, test, and doc here came out of this one, deliberately.
+
+The human work went into two things. First, the setup: building the harness itself so the loop could run on its own —
+
+- **Verification loops the agents close themselves:** Maestro on the simulators (interactively via MCP while building, plus the committed requirement suite), the Jest specs, and the mock server as ground truth (flow 07 reads its charge counter to prove single-charge; its request log shows the replay).
+- **Operational knowledge as code:** `.claude/skills/maestro` and `.claude/skills/mock-server` are custom skills written and maintained by the agents themselves — read before driving the simulator or the API, with gotchas folded back in as they're hit.
+- **Policy as code:** `CLAUDE.md` carries the rules — worktree/simulator ownership, commit-per-subtask straight to `main`, the Expo Go constraint, lint before committing.
+- **The mock server doubles as a harness fixture:** deterministic magic triggers and debug hooks (`x-mock-delay`, `POST /debug/delay`, `GET /debug/charges`) exist so agents can exercise lifecycle edges, like kill-mid-charge, deterministically.
+
+Second, the steering: a top-level orchestrator dispatched a focused subagent per sub-task, and the human stepped in where direction mattered — screenshots of gametime.co turned into a style guide so the app stays on-brand, and the moments of magic (the rolling-odometer total, the Lottie loading animation) were deliberately prompted, because a demo should have at least one detail that makes you look twice.
+
+**Validated and challenged, not trusted:** every change had to pass the Jest specs and the Maestro requirement flows on both platforms, with the mock server's request log as ground truth. At the end, independent reviewer agents audited the build against the take-home's own rubric — adversarially, blind to each other's findings — and the loop fixed and re-reviewed until a round came back clean.
 
 ## Running it
 
