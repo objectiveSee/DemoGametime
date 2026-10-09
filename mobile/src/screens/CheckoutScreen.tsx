@@ -53,6 +53,9 @@ export function CheckoutScreen() {
   const [environment, setEnvironment] = useState(liveEnvironment);
   if (!busy && environment !== liveEnvironment) setEnvironment(liveEnvironment);
   const [cardExpanded, setCardExpanded] = useState(false);
+  // Bumped per new order so the method list remounts already collapsed, instead of animating the
+  // previous order's open card form shut in view as the confirmation layer lifts.
+  const [orderRound, setOrderRound] = useState(0);
 
   const scrollRef = useRef<ScrollView>(null);
   const expiryRef = useRef<TextInput>(null);
@@ -152,6 +155,7 @@ export function CheckoutScreen() {
     checkout.startNewOrder();
     card.reset();
     setCardExpanded(false);
+    setOrderRound((n) => n + 1);
     setQuantity(DEFAULT_QUANTITY);
     retryOrder();
     scrollRef.current?.scrollTo({ y: 0, animated: false });
@@ -223,6 +227,7 @@ export function CheckoutScreen() {
           </Text>
         ) : null}
         <PaymentMethodList
+          key={orderRound}
           express={express}
           cardExpanded={cardExpanded}
           onExpressPress={onExpressPress}
